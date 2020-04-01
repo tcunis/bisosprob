@@ -74,3 +74,5 @@ plot(route(iter),'Layout','layered')
 
 % solve iteration
 sol = run(iter);
+
+disp(sol)
