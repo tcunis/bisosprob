@@ -40,7 +40,13 @@ assigns = struct;
 for var=varnames
     symbols.(var{:}) = getvariable(obj.prob,var);
     assigns.(var{:}) = NaN;
+    
+    sol.(var{:}) = [];
 end
+
+sol.obj = Inf;
+% prepare array of solutions
+solution(options.Niter) = sol;
 
 while iter <= options.Niter
     % current step
@@ -109,6 +115,8 @@ while iter <= options.Niter
             printf(options,'step','Objective = %g at iteration %d.\n', sol.obj, iter);
             
             %TODO: save solution to file
+            solution(iter) = sol;
+            
         otherwise
             % nothing to do
     end
@@ -148,6 +156,11 @@ while iter <= options.Niter
     sidx = nidx;
 end
             
-            
+% find iteration with minimal objective
+[~,imin] = min([solution.obj]);
+
+% set output
+sol = solution(imin);
+
 end
 
