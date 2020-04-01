@@ -1,0 +1,3 @@
+[submodule "+sosfactory"]
+	path = +sosfactory
+	url = https://github.com/tcunis/sosfactory.git
