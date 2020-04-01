@@ -107,3 +107,5 @@ The objective function must be linear in the decision variables.
 
 ### Visualization
 `BiSOS` provides visualization of the bilinear problems as undirected graphs, where the nodes represent variables, initial values, and the objective; and edges between nodes represent a constraint that involves both variables (liner or bilinear) or a substitution; an edge between a node with itself represents a constraint in a single variable.
+
+![Graph of the exemplary `BiSOS` problem](https://github.com/tcunis/bisosprob/raw/master/figures/demo-prob.png)
