@@ -31,7 +31,7 @@ active = double(nodes == sidx);
 sol = struct;
 
 varnames = getvariables(obj.prob);
-subnames = getvariables(obj.prob,'subvars');
+% subnames = getvariables(obj.prob,'subvars');
 
 symbols = struct;
 assigns = struct;
@@ -75,7 +75,7 @@ while iter <= options.Niter
             for var=step.varin
                 assigns.(var{:}) = sol.(var{:});
             end
-            for var=subnames
+            for var=step.subnames
                 [sosc,assigns.(var{:})] = evaluate(obj.prob,sosc,var,symbols,assigns);
             end
             

@@ -27,7 +27,7 @@ methods
         obj.options = bisos.Options(prob.sosf,varargin{:});
         
         % initial values and objective
-        obj.steps = newstep(obj,{'init' 'obj'},[],[],[],[],{[] prob.objective.lvar},{prob.haveinitials []});
+        obj.steps = newstep(obj,{'init' 'obj'},[],[],[],[],{[] prob.objective.lvar},{prob.haveinitials []},[]);
         
         A = false(2);
         obj.stepgraph = digraph(A);
@@ -56,11 +56,11 @@ methods (Access=private)
 
     function step = newstep(~,type,objective,varargin)
         % Create a new step struct.
-        if length(varargin) < 5
-            varargin{5} = [];
+        if length(varargin) < 6
+            varargin{6} = [];
         end
         
-        step = struct('type',type,'lvar',varargin{1},'obj',objective,'ovar',varargin{2},'cidx',varargin{3},'varin',varargin{4},'varout',varargin{5});
+        step = struct('type',type,'lvar',varargin{1},'obj',objective,'ovar',varargin{2},'cidx',varargin{3},'varin',varargin{4},'varout',varargin{5},'subnames',varargin{6});
     end
     
     function sol = runstep(~,step,sosc,sosoptions)

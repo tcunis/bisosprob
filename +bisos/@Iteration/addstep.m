@@ -1,4 +1,4 @@
-function obj = addstep(obj,type,lvar,objective,ovar,cidx)
+function obj = addstep(obj,type,lvar,objective,ovar,excl)
 % Register a new step in the iteration scheme.
 %
 %% About
@@ -13,9 +13,9 @@ function obj = addstep(obj,type,lvar,objective,ovar,cidx)
 if nargin < 4
     objective = [];
     ovar = [];
-    cidx = [];
+    excl = [];
 elseif nargin < 6
-    cidx = [];
+    excl = [];
 end
 
 cellfun(@(v) assert(hasvariable(obj.prob,v), 'Unknown variable ''%s''.', v), [lvar ovar]);
@@ -42,11 +42,11 @@ step = newstep(obj,type,objective);
 step.lvar = lvar;
 step.ovar = ovar;
 
-if isempty(cidx)
-    % get constraints and variables involved
-    cidx = cellfun(@(var) getconstraints(obj.prob,var), [lvar ovar], 'UniformOutput', false);
-    cidx = [cidx{:}];
-end
+% get constraints and variables involved
+cidx = cellfun(@(var) getconstraints(obj.prob,var), [lvar ovar], 'UniformOutput', false);
+cxcl = cellfun(@(var) getconstraints(obj.prob,var), [excl {}], 'UniformOutput', false);
+cidx = setdiff([cidx{:}], [cxcl{:}]);
+
 step.cidx = unique(cidx);
 
 cons = obj.prob.soscons(step.cidx);
@@ -60,9 +60,16 @@ solvedfor = [lvar bvar];
 % variables involved in constraints & objective
 involved = unique([cons.lvar cons.bvar ovar]);
 
-% substituted variables solvable
+% substituted variables
 subinvld = intersect(involved,getvariables(obj.prob,'subvars'));
-% arguments for involved substituted variable are already involved
+
+% linear variables & arguments of substituted variables
+sublvar = cellfun(@(sub) obj.prob.subvars.(sub).lvar, subinvld, 'UniformOutput', false);
+subargs = cellfun(@(sub) obj.prob.subvars.(sub).args, subinvld, 'UniformOutput', false);
+sublvar = [sublvar{:}];
+subargs = [subargs{:}];
+
+% linear variables in involved substituted variables are already involved
 issolvbl = cellfun(@(sub) all(ismember(obj.prob.subvars.(sub).lvar, involved)), subinvld);
 subslvbl = subinvld(issolvbl);
 
@@ -75,13 +82,17 @@ subslvbl = subinvld(issolvbl);
 %         % solvable variables don't have constraints outside step
 solvable = []; %involved(issolvbl);
 
-% input variables are all variables involved in the constraints
-% yet not solved for or solvable in this step
-step.varin  = setdiff(involved, [solvedfor subslvbl solvable]);
+% input variables are all variables involved in the constraints and linear
+% variables of subsitutes, yet not solved for or solvable in this step,
+% as well as nonlinear arguments to subsitutes (never solvable)
+step.varin  = unique([subargs, setdiff(involved, [solvedfor subslvbl solvable])]);
 
 % output variables are all variables involved but not input
 step.varout = setdiff(involved, step.varin);
 %         step.varout = setdiff([lvar cons.lvar cons.bvar], step.varin);
+
+% substitute variables in this step
+step.subnames = subinvld;
 
 % update step graph
 nodes = 1:N;
