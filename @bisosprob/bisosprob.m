@@ -58,8 +58,14 @@ methods
         % Register a new subsituting variable |var| with function handle
         % and (linear) arguments.
         
-        args = cellfun(@(var) getvariable(obj,var), varargin, 'UniformOutput', false);
-        sz = size(f(args{:}));
+        if isdouble(varargin{end})
+            sz = varargin{end};
+            varargin = varargin(1:end-1);
+        else
+            % determine size
+            args = cellfun(@(var) getvariable(obj,var), varargin, 'UniformOutput', false);
+            sz = size(f(args{:}));
+        end
         
         [obj,q] = obj.addsubsvar(var,sz,f,varargin{:});
     end
@@ -187,7 +193,7 @@ methods
         p = obj.(type).(var).var;
     end
     
-    function c = getconstraints(obj,var,caller)
+    function c = getconstraints(obj,var,caller_id)
         % Return indizes of constraints involving a variable.
         [tf,type] = hasvariable(obj,var);
         if iscell(var), var = var{:}; end
@@ -196,21 +202,22 @@ methods
                     
         var = obj.(type).(var);
     
-        % also get constraints of parental / derived variables
-        if nargin > 2 && isequal(var.id,caller.id)
-            % avoid infinite loop
+        % avoid infinite loop
+        if nargin < 3
+            caller_id = {};
+            
+        elseif ismember(var.id,caller_id) ...
+                || strcmp(type,'subvars') && any(ismember([var.args {}],caller_id)) % Work-around: don't add nonlinear arguments
             c = [];
             return
-        elseif nargin < 3
-            caller = var;
         end
            
-        % else:
+        % also get constraints of parental / derived variables
         if strcmp(type,'decvars')
-            cs = cellfun(@(sub) getconstraints(obj,sub,caller), [var.subs {}], 'UniformOutput', false);
+            cs = cellfun(@(sub) getconstraints(obj,sub,[caller_id {var.id}]), [var.subs {}], 'UniformOutput', false);
         
         elseif strcmp(type,'subvars')
-            cs = cellfun(@(arg) getconstraints(obj,arg,caller), [var.lvar var.args], 'UniformOutput', false);
+            cs = cellfun(@(arg) getconstraints(obj,arg,[caller_id {var.id} var.args]), [var.lvar {}], 'UniformOutput', false);
         end
         
         c = unique([var.cidx cs{:}]);
@@ -274,8 +281,10 @@ methods
             N = sum(structfun(@(p) isscalar(obj,p), obj.decvars));
         elseif strcmp(type,'initial')
             N = sum(structfun(@(p) hasinitial(obj,p), obj.decvars));
-        else
+        elseif isstruct(obj.(type))
             N = length(fieldnames(obj.(type)));
+        else
+            N = 0;
         end
     end
     
