@@ -26,7 +26,8 @@ nodes = (1:numnodes(G));
 iter = 0;
 sidx = 1;
 
-active = double(nodes == sidx);
+tokens = arrayfun(@(a) -length(predecessors(G,a)), nodes);
+tokens(sidx) = 0;
 
 sol = struct;
 
@@ -122,34 +123,16 @@ while iter <= options.Niter
     end
     
     %% compute next step
-    % mark current step as visited
-    active(sidx) = 2;
+    % mark current node as visited
+    tokens(sidx) = -length(predecessors(G,sidx));
     
-    % get successors of visited nodes
-    next = arrayfun(@(a) successors(G,a), nodes(active>1), 'UniformOutput', false);
+    % get successors of current node
+    next = successors(G,sidx);
     
-    % iterate over candidate successors
-    for idx = vertcat(next{:})'
-        % predecessors
-        cond = predecessors(G,idx);
-        
-        % check if all predecessors have been visited
-        if all(active(cond) > 1)
-            % mark successor as active
-            active(idx) = 1;
-        end
-    end
+    % distribute tokens to successors
+    tokens(next) = tokens(next) + 1;
     
-    % iterate over visited nodes
-    for idx = nodes(active>1)
-        % check if all successors are active
-        if all(active(next{nodes(active>1)==idx}) > 0)
-            % toggle visited nodes
-            active(idx) = 0;
-        end
-    end
-    
-    nidx = find(active==1,1);
+    nidx = find(tokens==0,1);
     
     printf(options,'debug','Step %d successful, next step %d.\n', sidx, nidx);
     
