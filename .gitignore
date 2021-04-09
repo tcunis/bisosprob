@@ -1,0 +1,5 @@
+# MacOS folder attributes
+.DS_Store
+
+# Matlab temporaries
+.m~
