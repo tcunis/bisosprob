@@ -10,11 +10,18 @@ function sol = run(obj,G)
 %
 %%
 
-if nargin < 2
-    G = route(obj);
-end
-
 options = obj.options;
+
+if nargin > 1 
+    % nothing to do
+elseif options.routing == options.ROUTING.auto
+    % automatic routing
+    G = route(obj);
+else
+    % follow steps by user-defined order
+    N = length(obj.steps);
+    G = digraph(circshift(eye(N),-1));
+end
 
 if length(obj.steps) < numnodes(G)
     % add dummy steps

@@ -12,12 +12,14 @@ classdef Options
 
 properties (Constant)
     DISPLAY = struct('off',0,'debug',1,'step',2,'warning',3,'result',4);
+    ROUTING = struct('auto',0,'user',1);
 end
 
 properties
     Niter = 10;
-    display = 'off';
+    display = 0;
     fid = 1;
+    routing = 0;
     
     sosoptions;
 end
@@ -49,6 +51,14 @@ methods
         assert(isfield(obj.DISPLAY,value), 'Unknown displaying option ''%s''.', value);
         
         obj.display = obj.DISPLAY.(value);
+    end
+    
+    function obj = set.routing(obj,value)
+        % Set auto routing configuration.
+        assert(ischar(value), 'Routing option must be character array.');
+        assert(isfield(obj.ROUTING,value), 'Unknown routing option ''%s''.', value);
+        
+        obj.routing = obj.ROUTING.(value);
     end
     
     function obj = set.fid(obj,value)
