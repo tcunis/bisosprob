@@ -27,7 +27,10 @@ methods
         obj.options = bisos.Options(prob.sosf,varargin{:});
         
         % initial values and objective
-        obj.steps = newstep(obj,{'init' 'obj'},[],[],[],[],{[] prob.objective.lvar},{prob.haveinitials []},[]);
+        obj.steps = {
+            newstep(obj,'init',prob.haveinitials)
+            newstep(obj,'objective',prob.objective.lvar)
+        };
         
         A = false(2);
         obj.stepgraph = digraph(A);
@@ -54,30 +57,16 @@ end
 methods (Access=private)
     obj = addstep(obj,type,lvar,objective,ovar,varargin);
 
-    function step = newstep(~,type,objective,varargin)
-        % Create a new step struct.
-        if length(varargin) < 6
-            varargin{6} = [];
-        end
+    function step = newstep(~,type,varargin)
+        % Create a new step.
         
-        step = struct('type',type,'lvar',varargin{1},'obj',objective,'ovar',varargin{2},'cidx',varargin{3},'varin',varargin{4},'varout',varargin{5},'subnames',varargin{6});
+        step = bisos.iteration.step.(type)(varargin{:});
     end
     
-    function sol = runstep(~,step,sosc,sosoptions)
-        switch step.type
-            case 'convex'
-                % solve convex optimization
-                sol = optimize(sosc,step.obj,sosoptions);
-
-            case 'bisect'
-                % solve bisection
-                sol = goptimize(sosc,step.obj,sosoptions);
-                
-            otherwise
-                error('Cannot solve %s-step.', step.type);
-        end
+    function step = getstep(obj,i)
+        % Return i-th step.
+        step = obj.steps{i};
     end
-    
 end
 
 end

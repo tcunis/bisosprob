@@ -23,7 +23,7 @@ c = @(s) s(1:end-1);
 
 % add node for each step
 for i=1:length(obj.steps)
-    step = obj.steps(i);
+    step = obj.getstep(i);
     
     if strcmp(step.type,'init')
         varin = 'init';
