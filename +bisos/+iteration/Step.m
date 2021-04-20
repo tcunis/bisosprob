@@ -4,10 +4,21 @@ properties (Abstract)
     type;
     varin;
     varout;
-end        
+end
+
+properties (Dependent)
+    variables;
+end
+
+methods
+    function vars = get.variables(obj)
+        % Variables involved with step.
+        vars = [obj.varin obj.varout];
+    end
+end
 
 methods (Abstract)
-    [sol,assigns,iter,stop] = run(obj,prob,iter,sol,symbols,assigns,varargin);
+    [sol,iter,stop] = run(obj,prob,iter,sol,symbols,assigns,varargin);
 end
     
 end

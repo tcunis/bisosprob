@@ -7,7 +7,7 @@ properties
 end
 
 methods
-    function [sol,assigns,iter,stop] = run(~,~,iter,sol,~,assigns,varargin)
+    function [sol,iter,stop] = run(~,~,iter,sol,varargin)
         % nothing to do
         stop = false;
     end

@@ -12,7 +12,7 @@ methods
         step.varout = vars;
     end
     
-    function [sol,assigns,iter,stop] = run(step,prob,iter,sol,~,assigns,varargin)
+    function [sol,iter,stop] = run(step,prob,iter,sol,varargin)
         % Run initialisation step.
         iter = iter + 1;
         

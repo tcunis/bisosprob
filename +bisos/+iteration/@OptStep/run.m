@@ -1,4 +1,4 @@
-function [sol,assigns,iter,stop] = run(step,prob,iter,sol,symbols,assigns,options)
+function [sol,iter,stop] = run(step,prob,iter,sol,symbols,assigns,options)
 % Run optimization step.
 
 sosc = newconstraints(prob.sosf,prob.x);
@@ -16,9 +16,9 @@ end
 % prepare objective
 [sosc,assigns] = prepare(step,prob,sosc,symbols,assigns);
 
-objective = bisos.subs(step.objective,symbols,assigns);
+objective = bisos.subs(step.objective,symbols,assigns,step.variables);
 
-sosc = constraint(prob,sosc,step.cidx,symbols,assigns);
+sosc = constraint(prob,sosc,step.cidx,symbols,assigns,step.variables);
 
 % solve optimization
 stepsol = solve(step,sosc,objective,options.sosoptions);

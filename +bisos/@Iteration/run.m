@@ -61,7 +61,7 @@ while iter <= options.Niter
     step = obj.getstep(sidx);
     
     % state-machine
-    [sol,assigns,iter,stop] = run(step,obj.prob,iter,sol,symbols,assigns,options);
+    [sol,iter,stop] = run(step,obj.prob,iter,sol,symbols,struct,options);
     
     if stop
         % Abort iteration

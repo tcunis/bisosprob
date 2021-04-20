@@ -23,7 +23,7 @@ methods
         [sosc,ovar] = instantiate(prob,sosc,step.ovar);
 
         assigns.(step.ovar{:}) = ovar;
-        assigns.(step.ovar{:}) = bisos.subs(step.objective,symbols,assigns);
+        assigns.(step.ovar{:}) = bisos.subs(step.objective,symbols,assigns,step.ovar);
     end
     
     function stepsol = solve(~,sosc,objective,sosoptions)
