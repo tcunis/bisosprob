@@ -24,7 +24,7 @@ methods
         % New optimization step.
         obj.type = type;
         
-        if nargin < 4
+        if nargin < 5
             objective = [];
             bvar = [];
             ovar = [];

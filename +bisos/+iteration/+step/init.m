@@ -29,4 +29,11 @@ methods
     end
 end
 
+methods (Access=protected)
+    function str = varin2str(~)
+        % Overriding bisos.iteration.Step#varin2str
+        str = 'init';
+    end
+end
+
 end

@@ -23,10 +23,8 @@ else
     G = digraph(circshift(eye(N),-1));
 end
 
-if length(obj.steps) < numnodes(G)
-    % add dummy steps
-    obj.steps(end+1:numnodes(G)) = {newstep(obj,'dummy')};
-end
+% add dummy steps if necessary
+obj = complete(obj,G);
 
 nodes = (1:numnodes(G));
 

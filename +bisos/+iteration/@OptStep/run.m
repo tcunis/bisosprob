@@ -24,7 +24,7 @@ sosc = constraint(prob,sosc,step.cidx,symbols,assigns,step.variables);
 stepsol = solve(step,sosc,objective,options.sosoptions);
 
 if ~stepsol.feas
-    printf(options,'warning','Step %s infeasible at iteration %d.\n', G.Nodes.Name{sidx}, iter);
+    printf(options,'warning','Step %s infeasible at iteration %d.\n', tostr(step), iter);
     % break iteration
     stop = true;
     return

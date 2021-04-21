@@ -27,4 +27,11 @@ methods
     end
 end
 
+methods (Access=protected)
+    function str = varout2str(~)
+        % Overriding bisos.iteration.Step#varout2str
+        str = 'obj';
+    end
+end
+
 end

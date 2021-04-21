@@ -11,6 +11,11 @@ methods
         % nothing to do
         stop = false;
     end
+    
+    function str = tostr(~)
+        % Overriding bisos.iteration.Step#tostr
+        str = '';
+    end
 end
 
 end

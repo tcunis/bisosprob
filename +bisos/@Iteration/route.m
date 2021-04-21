@@ -50,9 +50,11 @@ while any(~stepidxs) %TODO: this leads to an infinite loop if a step is never vi
             end
         end
     end
+    varout = cellfun(@(s) s.varout, obj.steps(activate), 'UniformOutput', false);
+    varout = [varout{:}];
     % updated & solved variables
-    solved = solved | ismember(varnames,[obj.getstep(activate).varout {}]);
-    update = update | ismember(varnames,[obj.getstep(activate).varout {}]);
+    solved = solved | ismember(varnames,varout);
+    update = update | ismember(varnames,varout);
 
     if isequal(active,activate)
         % no advances

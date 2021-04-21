@@ -30,7 +30,7 @@ methods
         obj.steps = {
             newstep(obj,'init',prob.haveinitials)
             newstep(obj,'objective',prob.objective.lvar)
-        };
+        }';
         
         A = false(2);
         obj.stepgraph = digraph(A);
@@ -55,7 +55,7 @@ methods
 end
 
 methods (Access=private)
-    obj = addstep(obj,type,lvar,objective,ovar,varargin);
+    obj = addstep(obj,type,varargin);
 
     function step = newstep(~,type,varargin)
         % Create a new step.
@@ -66,6 +66,11 @@ methods (Access=private)
     function step = getstep(obj,i)
         % Return i-th step.
         step = obj.steps{i};
+    end
+    
+    function obj = complete(obj,G)
+        % Add dummy steps to match graph representation.
+        obj.steps(end+1:numnodes(G)) = {newstep(obj,'dummy')};
     end
 end
 
