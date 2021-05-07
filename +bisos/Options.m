@@ -11,7 +11,7 @@ classdef Options
 %%
 
 properties (Constant)
-    DISPLAY = struct('off',0,'debug',1,'step',2,'warning',3,'result',4);
+    DISPLAY = struct('off',0,'result',1,'warning',2,'step',3,'debug',4);
     ROUTING = struct('auto',0,'user',1);
 end
 
@@ -80,7 +80,7 @@ methods
             lvl = obj.DISPLAY.(lvl);
         end
         
-        if lvl >= obj.display
+        if lvl <= obj.display
             nb = fprintf(obj.fid,fmt,varargin{:});
         else
             nb = 0;
