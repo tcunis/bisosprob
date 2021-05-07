@@ -1,10 +1,12 @@
-function q = subs(p,symbols,assigns)
+function q = subs(p,symbols,assigns,varargin)
 % Replace formal by actual variables.
 
-assert(isequal(fieldnames(symbols),fieldnames(assigns)), 'Formal and actual variables must coincide.')
+if nargin < 4
+    assert(isequal(fieldnames(symbols),fieldnames(assigns)), 'Formal and actual variables must coincide.')
+end
 
-smb = struct2array(symbols);
-asg = struct2array(assigns);
+smb = struct2array(symbols,varargin{:});
+asg = struct2array(assigns,varargin{:});
 
 q = subs(p,smb,asg);
 

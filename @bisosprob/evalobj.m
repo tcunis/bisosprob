@@ -1,4 +1,4 @@
-function d = evalobj(obj,symbols,solved)
+function d = evalobj(obj,varargin)
 % Evaluate the objective function against a solution.
 %
 %% About
@@ -10,6 +10,6 @@ function d = evalobj(obj,symbols,solved)
 %
 %%
 
-d = double(bisos.subs(obj.objective.obj, symbols, solved));
+d = double(bisos.subs(obj.objective.obj, varargin{:}));
 
 end

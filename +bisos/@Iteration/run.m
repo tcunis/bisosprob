@@ -23,10 +23,8 @@ else
     G = digraph(circshift(eye(N),-1));
 end
 
-if length(obj.steps) < numnodes(G)
-    % add dummy steps
-    obj.steps(end+1:numnodes(G)) = newstep(obj,'dummy',[]);
-end
+% add dummy steps if necessary
+obj = complete(obj,G);
 
 nodes = (1:numnodes(G));
 
@@ -58,75 +56,19 @@ solution(options.Niter) = sol;
 
 while iter <= options.Niter
     % current step
-    step = obj.steps(sidx);
+    step = obj.getstep(sidx);
     
     % state-machine
-    switch step.type
-        case 'init'
-            %% initialize iteration
-            iter = iter + 1;
-            
-            if iter == 1
-                % initialize solution variables
-                for var=step.varout
-                    [~,sol.(var{:})] = hasinitial(obj.prob,var{:});
-                end
-            end
-            
-        case {'convex' 'bisect'}
-            %% main optimization step
-            sosc = newconstraints(obj.prob.sosf,obj.prob.x);
-            
-            for var=step.lvar
-                [sosc,assigns.(var{:})] = instantiate(obj.prob,sosc,var);
-            end
-            for var=step.varin
-                assigns.(var{:}) = sol.(var{:});
-            end
-            for var=step.subnames
-                [sosc,assigns.(var{:})] = evaluate(obj.prob,sosc,var,symbols,assigns);
-            end
-            
-            if strcmp(step.type,'bisect')
-                % prepare bisection
-                [sosc,ovar] = instantiate(obj.prob,sosc,step.ovar);
-                
-                assigns.(step.ovar{:}) = ovar;
-                assigns.(step.ovar{:}) = bisos.subs(step.obj,symbols,assigns);
-            end
-            
-            step.obj = bisos.subs(step.obj,symbols,assigns);
-                
-            sosc = constraint(obj.prob,sosc,step.cidx,symbols,assigns);
-                
-            % solve optimization
-            stepsol = runstep(obj,step,sosc,options.sosoptions);
-            
-            if ~stepsol.feas
-                printf(options,'warning','Step %s infeasible at iteration %d.\n', G.Nodes.Name{sidx}, iter);
-                break;
-            end
-            
-            % assign outputs
-            for var=step.varout
-                sol.(var{:}) = subs(assigns.(var{:}), stepsol);
-            end
-            
-        case 'obj'
-            %% set objective
-            for var=step.varin
-                assigns.(var{:}) = sol.(var{:});
-            end
-            
-            sol.obj = evalobj(obj.prob,symbols,assigns);
-            
-            printf(options,'step','Objective = %g at iteration %d.\n', sol.obj, iter);
-            
-            %TODO: save solution to file
-            solution(iter) = sol;
-            
-        otherwise
-            % nothing to do
+    [sol,iter,stop] = run(step,obj.prob,iter,sol,symbols,struct,options);
+    
+    if stop
+        % Abort iteration
+        break;
+    end
+
+    if strcmp(step.type, 'obj')
+        %TODO: save solution to file
+        solution(iter) = sol;
     end
     
     %% compute next step

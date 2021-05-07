@@ -1,4 +1,4 @@
-function sosc = constraint(obj,sosc,cidx,symbols,assigns)
+function sosc = constraint(obj,sosc,cidx,varargin)
 % Add constraint(s) #cidx to SOS constraints.
 %
 %% About
@@ -15,8 +15,8 @@ for ci=cidx
     
     cons = obj.soscons(ci);
     
-    LHS = bisos.subs(cons.lhs,symbols,assigns);
-    RHS = bisos.subs(cons.rhs,symbols,assigns);
+    LHS = bisos.subs(cons.lhs,varargin{:});
+    RHS = bisos.subs(cons.rhs,varargin{:});
     
     sosc = cons.cmp(sosc,LHS,RHS);
 end

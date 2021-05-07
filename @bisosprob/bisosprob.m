@@ -171,9 +171,9 @@ end
 methods
     %% Package interface
     [sosc,p] = instantiate(obj,sosc,decvar);
-    sosc = constraint(obj,sosc,cidx,fvar,avar);
-    [sosc,p] = evaluate(obj,sosc,subvar,fvar,avar);
-    d = evalobj(obj,var,sol);
+    sosc = constraint(obj,sosc,cidx,varargin);
+    [sosc,p] = evaluate(obj,sosc,subvar,varargin);
+    d = evalobj(obj,varargin);
     
     function vars = getvariables(obj,type)
         % Return list of variables of |type|.
