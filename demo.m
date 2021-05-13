@@ -53,16 +53,17 @@ P = lyap(J0',eye(2));
 prob = setinitial(prob,'V',x'*P*x);
 
 % set trivial inscribing shape
-prob = setinitial(prob,'b',0);
+% prob = setinitial(prob,'b',0);
 
 %% Solve
 prob = setobjective(prob, -b, {'b'});
 
 % define iteration explicitly
-iter = bisos.Iteration(prob, 'display','debug');
+iter = bisos.Iteration(prob, 'display','step');
 iter = iter.addconvex({'V'});
 iter = iter.addbisect({'s1'},-b,{'b'});
 iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
+iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
 
 % plot iteration scheme
 figure(1)

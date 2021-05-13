@@ -47,6 +47,12 @@ methods
         
         obj = obj.addstep('bisect',varargin{:});
     end
+    
+    function obj = addmessage(obj, varargin)
+        % Register a message output.
+        
+        obj = obj.addstep('message',varargin{:});
+    end
 end
 
 methods
