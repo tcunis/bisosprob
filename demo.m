@@ -64,6 +64,7 @@ iter = iter.addconvex({'V'});
 iter = iter.addbisect({'s1'},-b,{'b'});
 iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
 iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
+iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p);
 
 % plot iteration scheme
 figure(1)
@@ -80,9 +81,13 @@ sol = run(iter);
 
 disp(sol)
 
+function stop = plot_sol(V,g,b,p)
 %% plot solution
 figure(2)
 clf
-pcontour(sol.V, double(sol.g), [-2 2 -2 2], 'b-');
+pcontour(V, double(g), [-2 2 -2 2], 'b-');
 hold on
-pcontour(p, double(sol.b), [-2 2 -2 2], 'r--');
+pcontour(p, double(b), [-2 2 -2 2], 'r--');
+
+stop = false;
+end

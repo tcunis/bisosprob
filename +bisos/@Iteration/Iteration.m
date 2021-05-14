@@ -53,6 +53,12 @@ methods
         
         obj = obj.addstep('message',varargin{:});
     end
+    
+    function obj = addoutputfcn(obj,varargin)
+        % Register an output function.
+        
+        obj = obj.addstep('outputfcn',varargin{:});
+    end
 end
 
 methods
