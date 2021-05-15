@@ -6,7 +6,7 @@ Note: `BiSOSprob` is **not** a sum-of-squares solver itself; rather, it makes us
 
 ## Defining bilinear SOS problems: the class [`bisosprob`](https://github.com/tcunis/bisosprob/blob/master/%40bisosprob/bisosprob.m)
 
-In the `BiSOS` toolbox, bilinear SOS problems are defined in a similar manner to conventional, convex SOS problems. First, we need to declare the variables (e.g., system states) of our polynomials and any problem data. `BiSOS` relies on the `sosfactory` toolbox to be independent of the available implementations; in this [example](https://github.com/tcunis/bisosprob/blob/master/demo.m) we are going to use the factory methods for `sosopt`:
+In the `BiSOS` toolbox, bilinear SOS problems are defined in a similar manner to conventional, convex SOS problems. First, we need to declare the independent variables (e.g., system states) of our polynomials and any problem data. `BiSOS` relies on the `sosfactory` toolbox to be independent of the available implementations; in this [example](https://github.com/tcunis/bisosprob/blob/master/demo.m) we are going to use the factory methods for `sosopt`:
 
 ```
 import sosfactory.sosopt.*
