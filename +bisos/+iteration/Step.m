@@ -47,4 +47,11 @@ methods (Access=protected)
     end
 end
 
+methods
+    function stop = run_final(~,varargin)
+        % Run step for the final time.
+        stop = false;
+    end
+end
+
 end

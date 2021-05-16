@@ -10,7 +10,7 @@ function sol = run(obj,G)
 %
 %%
 
-options = obj.options;
+options = preparelog(obj.options);
 
 if nargin > 1 
     % nothing to do
@@ -93,6 +93,17 @@ end
 
 % set output
 sol = solution(imin);
+
+% evaluate final steps
+fstop = cellfun(@(step) run_final(step,obj.prob,iter,sol,options), obj.steps);
+
+stop = max([stop fstop]);
+if stop >= 2
+    % solution erroneous
+    sol = [];
+end
+
+finishlog(options,stop);
 
 end
 
