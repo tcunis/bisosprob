@@ -12,6 +12,7 @@ classdef Options
 
 properties (Constant)
     DISPLAY = struct('off',0,'result',1,'warning',2,'step',3,'debug',4);
+    SAVESOL = struct('off',0,'result',1,'step',3);
     ROUTING = struct('auto',0,'user',1);
 end
 
@@ -20,6 +21,10 @@ properties
     display = 0;
     fid = 1;
     routing = 0;
+    savesol = 0;
+    logdir = '.';
+    logprefix = '';
+    logname = '';
     
     sosoptions;
 end
@@ -53,6 +58,14 @@ methods
         obj.display = obj.DISPLAY.(value);
     end
     
+    function obj = set.savesol(obj,value)
+        % Set solution saving configuration.
+        assert(ischar(value), 'Displaying option must be character array.');
+        assert(isfield(obj.SAVESOL,value), 'Unknown saving option ''%s''.', value);
+        
+        obj.savesol = obj.SAVESOL.(value);
+    end
+    
     function obj = set.routing(obj,value)
         % Set auto routing configuration.
         assert(ischar(value), 'Routing option must be character array.');
@@ -64,9 +77,31 @@ methods
     function obj = set.fid(obj,value)
         % Set output stream for displaying.
         assert(isnumeric(value), 'File ID must be numeric.');
-        assert(~isempty(fopen(value)), 'Unknown file ID %d.', value);
+        assert(value > 0, 'Unknown file ID %d.', value);
+        
+        obj.fid = value;
     end
     
+    function obj = set.logdir(obj,value)
+        % Set file directory for log.
+        assert(ischar(value),'Log directory must be string.');
+        
+        obj.logdir = value;
+    end
+    
+    function obj = set.logprefix(obj,value)
+        % Set file name prefix for log.
+        assert(ischar(value),'Log prefix must be string.');
+        
+        obj.logprefix = value;
+    end 
+    
+    function obj = set.logname(obj,value)
+        % Set file name for log.
+        assert(ischar(value),'Log name must be string.');
+        
+        obj.logname = value;
+    end
     
     %% Displaying
     function nb = printf(obj,lvl,fmt,varargin)
@@ -86,7 +121,61 @@ methods
             nb = 0;
         end
     end
-            
+       
+    
+    %% File storage
+    function writetofile(obj,lvl,sol,fmt,varargin)
+        % Write solution to file if level permits.
+        if ~isfield(obj.DISPLAY,lvl)
+            % default level
+            varargin = [{fmt} varargin];
+            fmt = sol;
+            sol = lvl;
+            lvl = obj.SAVESOL.step;
+        else
+            lvl = obj.SAVESOL.(lvl);
+        end
+        
+        if lvl <= obj.savesol
+            save(sprintf([obj.logdir '/' obj.logprefix fmt],varargin{:}), '-struct', 'sol');
+        end
+    end
+    
+    function sol = readfile(obj,fname)
+        % Read solution from file.
+        
+        sol = load([obj.logdir '/' obj.logprefix fname], '-mat');
+    end
+    
+    function obj = preparelog(obj)
+        % Prepare for logs.
+        if strcmp(obj.logdir, '.')
+            % nothing to do
+        elseif ~exist(obj.logdir,'file')
+            [success,info] = mkdir(obj.logdir);
+            if isempty(info)
+                % nothing to do
+            elseif success
+                warning(info)
+            else
+                error(info)
+            end
+        else
+            delete([obj.logdir '/*.mat']);
+        end
+        
+        if ~isempty(obj.logname)
+            obj.fid = fopen([obj.logdir '/' obj.logprefix obj.logname],'w');
+        end
+    end
+    
+    function finishlog(obj,stop)
+        % Finalize logs.
+        if obj.fid > 2
+            printf(obj,'off','Return %d',stop);
+            fclose(obj.fid);
+        end
+    end
 end
 
 end

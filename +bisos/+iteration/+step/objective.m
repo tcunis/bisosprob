@@ -23,6 +23,18 @@ methods
         
         printf(options,'step','Objective = %g at iteration %d.\n', sol.obj, iter);
         
+        writetofile(options,'step',sol,'iter%d',iter);
+        
+        stop = false;
+    end
+    
+    function stop = run_final(~,~,iter,sol,options)
+        % Run final objective step.
+        
+        printf(options,'result','Stopped after %d iterations with objective = %g\n.', iter, sol.obj);
+        
+        writetofile(options,'result',sol,'result');
+        
         stop = false;
     end
 end
