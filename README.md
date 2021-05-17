@@ -80,7 +80,7 @@ prob = ge(prob, s1, 0, {'s1'});
 The syntax `le(prob, lhs, rhs, lvar, bvar)` and `ge(prob, lhs, rhs, lvar, bvar)` registers the constraints `rhs - lhs is SOS` and `lhs - rhs is SOS`, respectively. The syntax `eq(prob, lhs, rhs, lvar, bvar)` registers the constraint `lhs == rhs`. The realisation of these constraints depends on the used SOS toolbox. The additional parameters `lvar` and `bvar` specify the list of variables in which both left and right-hand side are linear and bilinear, respectively. If a decision variable enters both linearily *and* bilinearily into a constraint, it should be declared as bilinear only.
 
 ### Initial values & Objective function
-Solving bilinear SOS problems, for example with iteration approaches, often requires initial values of a subset of decision variables:
+Solving bilinear SOS problems, for example with iterative approaches, often requires initial values for some of the decision variables:
 
 ```
 % linearization around origin
@@ -90,9 +90,6 @@ J0 = double(subs(J,x,zeros(2,1)));
 P = lyap(J0',eye(2));
 
 prob = setinitial(prob,'V',x'*P*x);
-
-% set trivial inscribing shape
-prob = setinitial(prob,'b',0);
 ```
 
 Initial values can also be provided directly when declaring a decision variable, e.g., `[prob,b] = decvar(prob,'b',0)`.
@@ -104,6 +101,8 @@ prob = setobjective(prob, -b, {'b'});
 ```
 
 The objective function must be linear in the decision variables.
+
+## Solving bilinear SOS problems: the class [`bisos.Iteration`](https://github.com/tcunis/bisosprob/blob/master/%2Bbisos/%40Iteration/Iteration.m)
 
 ### Visualization
 `BiSOS` provides visualization of the bilinear problems as undirected graphs, where the nodes represent variables, initial values, and the objective; and edges between nodes represent a constraint that involves both variables (liner or bilinear) or a substitution; an edge between a node with itself represents a constraint in a single variable.
