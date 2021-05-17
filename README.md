@@ -6,7 +6,7 @@ Note: `BiSOSprob` is **not** a sum-of-squares solver itself; rather, it makes us
 
 ## Defining bilinear SOS problems: the class [`bisosprob`](https://github.com/tcunis/bisosprob/blob/master/%40bisosprob/bisosprob.m)
 
-In the `BiSOS` toolbox, bilinear SOS problems are defined in a similar manner to conventional, convex SOS problems. First, we need to declare the variables (e.g., system states) of our polynomials and any problem data. `BiSOS` relies on the `sosfactory` toolbox to be independent of the available implementations; in this [example](https://github.com/tcunis/bisosprob/blob/master/demo.m) we are going to use the factory methods for `sosopt`:
+In the `BiSOS` toolbox, bilinear SOS problems are defined in a similar manner to conventional, convex SOS problems. First, we need to declare the independent variables (e.g., system states) of our polynomials and any problem data. `BiSOS` relies on the `sosfactory` toolbox to be independent of the available implementations; in this [example](https://github.com/tcunis/bisosprob/blob/master/demo.m) we are going to use the factory methods for `sosopt`:
 
 ```
 import sosfactory.sosopt.*
@@ -29,7 +29,7 @@ l = x'*x*1e-6;
 
 We have declared a variable `x` of length 2 and the system dynamics `f` as Van der Pol oscillator with negative damping factor, computed the Jacobian matrix of `f`, and defined a polynomial shape `p` and small polynomial `l`, for we want to estimte the region of attraction of our system.
 
-Next, we create a new problem proving the SOS factory we want to use (`sosf`) and the vector of variables `x`:
+Next, we create a new problem supplying the SOS factory we want to use (`sosf`) and the vector of independent variables `x`:
 ```
 prob = bisosprob(sosf,x);
 ```
@@ -53,7 +53,7 @@ Unlike convex SOS solver, `BiSOS` expects the decision variables to be polynomia
 Similar to other toolboxes, `BiSOS` supports polynomial, sum-of-squares, and scalar and matrix decision variables:
 - Polynomial decision variables (`polydecvar(prob, var, w)`) a variables of the form `p ∈ {Q⋅w | Q ∈ ℝ^(1×l)}`, where `l` is the length of the vector of monomials `w`;
 - Sum-of-squares decision variables (`sosdecvar(prob, var, z)`) a variables of the form `s ∈ {z'⋅Q⋅z | Q ∈ ℝ^(l×l) symmetric}`;
-- Scalar and matrix decision variables (`decvar(prob, var)`) are of the variables of the form `a ∈ ℝ`.
+- Scalar and matrix decision variables (`decvar(prob, var)`) are variables of the form `a ∈ ℝ`.
 
 In addition to decision variables, we can define subsidary variables defined by functions *in* the decision variables, which are difficult or impossible to compute by basic mathematical operations.
 
@@ -61,7 +61,7 @@ In addition to decision variables, we can define subsidary variables defined by 
 [prob,gradV] = substitute(prob,'dV',@(p) sosf.jacob(p,x),{'V'});
 ```
 
-The syntax `substitute(prob, var, fhan, lvar, args)` registers a new variable defined by the function `fhan(lvar1,...,lvarM,args1,...,argsN)`. The function handle `fhan` must be linear in the variables (coefficients) of `lvar`. Additional, nonlinear inputs can be specified as `args` but are not supported yet. 
+The syntax `substitute(prob, var, fhan, lvar, args)` registers a new variable defined by the function `fhan(lvar1,...,lvarM,args1,...,argsN)`. The function handle `fhan` must be linear in the variables (coefficients) of `lvar`. Additional, nonlinear inputs can be specified as `args`. 
 
 ### Constraints
 One the main features of this toolbox is to define the constraints once, independently from the solution approach. `BiSOS` supports non-strict inequality and equality constraints (in a sum-of-squares sense):
@@ -77,7 +77,7 @@ prob = le(prob, V - g, s1*(p-b), {'V' 'g'}, {'b' 's1'});
 prob = ge(prob, s1, 0, {'s1'});
 ```
 
-The syntax `le(prob, lhs, rhs, lvar, bvar)` and `ge(prob, lhs, rhs, lvar, bvar)` registers the constraints `rhs - lhs is SOS` and `lhs - rhs is SOS`, respectively. The syntax `eq(prob, lhs, rhs, lvar, bvar)` registers the constraint `lhs == rhs`. The realisation of these constraints depends on the used SOS toolbox. The additional parameters `lvar` and `bvar` are used to provide list of variables in which both left and right-hand side are linear and bilinear, respectively. If a decision variable enters both linearily *and* bilinearily into a constraint, only it should be declared as bilinear only.
+The syntax `le(prob, lhs, rhs, lvar, bvar)` and `ge(prob, lhs, rhs, lvar, bvar)` registers the constraints `rhs - lhs is SOS` and `lhs - rhs is SOS`, respectively. The syntax `eq(prob, lhs, rhs, lvar, bvar)` registers the constraint `lhs == rhs`. The realisation of these constraints depends on the used SOS toolbox. The additional parameters `lvar` and `bvar` specify the list of variables in which both left and right-hand side are linear and bilinear, respectively. If a decision variable enters both linearily *and* bilinearily into a constraint, it should be declared as bilinear only.
 
 ### Initial values & Objective function
 Solving bilinear SOS problems, for example with iteration approaches, often requires initial values of a subset of decision variables:
