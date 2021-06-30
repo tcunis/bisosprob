@@ -11,7 +11,7 @@ methods
         assert(length(ovar) < 2, 'Can only bisect along a single variable.');
         assert(isscalar(prob, ovar{:}), 'Can only bisect along scalar variable.');
 
-        p = getvariable(prob, ovar);
+        p = getsymbol(prob, ovar);
         assert(isequal(objective,p) || isequal(objective,-p), 'Objective must be ''+%1$s'' or ''-%1$s''.', ovar{:});
         
         step@bisos.iteration.OptStep(prob,'bisect',lvar,ovar,objective,ovar,varargin{:});

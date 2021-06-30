@@ -6,10 +6,10 @@ classdef bisosprob
 % * Author:     Torbjoern Cunis
 % * Email:      <mailto:tcunis@umich.edu>
 % * Created:    2020-03-26
-% * Changed:    2020-03-31
+% * Changed:    2020-06-28
 %
 %%
-    
+
 properties
     sosf;
     x;
@@ -19,6 +19,10 @@ properties
     soscons = struct('lhs',{}, 'rhs',{}, 'cmp',{}, 'lvar',{}, 'bvar',{});
     
     objective;
+end
+
+properties (Access=private,Dependent)
+    variables;
 end
 
 methods
@@ -32,29 +36,29 @@ methods
         obj.x = x;
     end
 
-    function [obj,a] = decvar(obj,var,varargin)
+    function [obj,a] = decvar(obj,vid,varargin)
         % Register a new scalar decision variable |var|.
         
-        [obj,a] = obj.addmdecvar(var,1,'',[],varargin{:});
+        [obj,a] = obj.addmdecvar(vid,1,'',[],varargin{:});
         
         %TODO: set min/max 
     end
     
-    function [obj,p] = polydecvar(obj,var,z,varargin)
+    function [obj,p] = polydecvar(obj,vid,z,varargin)
         % Register a new polynomial decision variable |var| with vector of
         % monomials z and optional initial assignment p0.
         
-        [obj,p] = obj.addmdecvar(var,1,'poly',z,varargin{:});
+        [obj,p] = obj.addmdecvar(vid,1,'poly',z,varargin{:});
     end
     
-    function [obj,s] = sosdecvar(obj,var,z,varargin)
+    function [obj,s] = sosdecvar(obj,vid,z,varargin)
         % Register a new sum-of-squares decision variable |var| with vector
         % of monomials z and optional initial assignment p0.
         
-        [obj,s] = obj.addmdecvar(var,1,'sos',z,varargin{:});
+        [obj,s] = obj.addmdecvar(vid,1,'sos',z,varargin{:});
     end
     
-    function [obj,q] = substitute(obj,var,f,varargin)
+    function [obj,q] = substitute(obj,vid,f,varargin)
         % Register a new subsituting variable |var| with function handle
         % and (linear) arguments.
         
@@ -63,11 +67,11 @@ methods
             varargin = varargin(1:end-1);
         else
             % determine size
-            args = cellfun(@(var) getvariable(obj,var), varargin, 'UniformOutput', false);
+            args = cellfun(@(id) getsymbol(obj,id), varargin, 'UniformOutput', false);
             sz = size(f(args{:}));
         end
         
-        [obj,q] = obj.addsubsvar(var,sz,f,varargin{:});
+        [obj,q] = obj.addsubsvar(vid,sz,f,varargin{:});
     end
     
     function obj = eq(obj,a,b,varargin)
@@ -91,10 +95,12 @@ methods
         obj = obj.addconstraint(a,@ge,b,varargin{:});
     end
     
-    function obj = setinitial(obj,var,p0)
+    function obj = setinitial(obj,vid,p0)
         % Set an initial guess for a registered decision variable.
+        var = getvariable(obj,vid,'decvars');
         
-        obj.decvars.(var).p0 = p0;
+        var.initial = p0;
+        obj.variables = var;
     end
     
     function obj = setobjective(obj,objective,lvar)
@@ -107,40 +113,25 @@ end
 
 methods (Access=private)
     %% Private methods
-    function [obj,p] = addmdecvar(obj,var,sz,type,z,p0)
+    function [obj,p] = addmdecvar(obj,vid,sz,type,varargin)
         % Register a new decision variable.
-        if nargin < 6
-            p0 = [];
-        end
-        if length(sz) == 1
-            sz = repmat(sz,1,2);
-        end
+        [newvar,p] = bisos.package.DecisionVariable(obj.sosf,vid,type,sz,varargin{:});
         
-        p = polyvar(obj.sosf, var, sz(1), sz(2));
-        obj.decvars.(var) = struct('id', var, 'var', p, 'type', type, 'sz', sz, 'z', z, 'p0', p0, 'subs', [], 'cidx', []);
+        obj.variables = newvar;
     end
     
-    function [obj,q] = addsubsvar(obj,var,sz,f,lvar,args)
-        % Register a new subsidary variable.
-        if nargin < 6
-            args = [];
-        elseif ~isempty(args)
-            warning('Arguments for subsidary variables are not supported yet.');
-        end
-        if length(sz) == 1
-            sz = repmat(sz,1,2);
-        end
+    function [obj,q] = addsubsvar(obj,vid,sz,f,varargin)
+        % Register a new subsidiary variable.
+        [newvar,q] = bisos.package.SubsidiaryVariable(obj.sosf,vid,sz,f,varargin{:});
         
-        q = polyvar(obj.sosf, var, sz(1), sz(2));
-        obj.subvars.(var) = struct('id', var, 'var', q, 'sz', sz, 'fhan', f, 'lvar', [], 'args', [], 'cidx', []);
-        obj.subvars.(var).lvar = lvar;
-        obj.subvars.(var).args = args;
-        
-        for p=[lvar args]
-            assert(obj.hasvariable(p, 'decvars'), 'Unknown decision variable ''%s''.', p{:});
+        for p=newvar.varin
+            var = obj.getvariable(p, 'decvars');
             
-            obj.decvars.(p{:}).subs{end+1} = var;
+            var.subsidiaries = vid;
+            obj.variables = var;
         end
+        
+        obj.variables = newvar;
     end
     
     function obj = addconstraint(obj,a,cmp,b,lvar,bvar)
@@ -159,68 +150,68 @@ methods (Access=private)
         obj.soscons(N+1,:) = cons;
         
         for p=[lvar bvar]
-            [tf,type] = obj.hasvariable(p);
+            var = obj.getvariable(p);
             
-            assert(tf, 'Unknown variable ''%s''.', p{:});
-            
-            obj.(type).(p{:}).cidx(end+1) = N+1;
+            var.constraints = N+1;
+            obj.variables = var;
         end
     end
 end
 
 methods
     %% Package interface
-    [sosc,p] = instantiate(obj,sosc,decvar);
     sosc = constraint(obj,sosc,cidx,varargin);
-    [sosc,p] = evaluate(obj,sosc,subvar,varargin);
     d = evalobj(obj,varargin);
     
-    function vars = getvariables(obj,type)
+    function [sosc,p] = instantiate(obj,sosc,vid,varargin)
+        % Instantiate decision variable.
+        var = getvariable(obj,vid,'decvars');
+        
+        [sosc,p] = instantiate(var,sosc,varargin{:});
+    end
+    
+    function [sosc,p] = evaluate(obj,sosc,vid,varargin)
+        % Evaluate subsidiary variable.
+        var = getvariable(obj,vid,'subvars');
+        
+        [sosc,p] = evaluate(var,sosc,varargin{:});
+    end
+
+    
+    %% Getter functions
+    cidx = getconstraints(obj,vid,varargin);
+    
+    function p = getsymbol(obj,vid)
+        % Return polynomial variable object.
+        var = getvariable(obj,vid);
+
+        p = var.poly;
+    end
+    
+    function var = getvariable(obj,vid,varargin)
+        % Return variable of |type|. Throws error if no variable exists.
+        [tf,type] = hasvariable(obj,vid,varargin{:});
+        
+        if iscell(vid), vid = vid{:}; end
+        if ~tf, throwAsCaller(bisos.exception.NoSuchVariable(vid,type)); end
+        
+        var = obj.(type).(vid);
+    end
+    
+    function vids = getvariables(obj,type)
         % Return list of variables of |type|.
         if nargin < 2
-            vars = [getvariables(obj,'decvars'), getvariables(obj,'subvars')];
+            vids = [getvariables(obj,'decvars'), getvariables(obj,'subvars')];
         else
-            vars = fieldnames(obj.(type))';
+            vids = fieldnames(obj.(type))';
         end
     end
     
-    function p = getvariable(obj,var)
-        % Return polynomial variable object.
-        [tf,type] = hasvariable(obj,var);
-        if iscell(var), var = var{:}; end
-        
-        assert(tf, 'Unknown variable ''%s''.', var);
-        p = obj.(type).(var).var;
-    end
-    
-    function c = getconstraints(obj,var,caller_id)
-        % Return indizes of constraints involving a variable.
-        [tf,type] = hasvariable(obj,var);
-        if iscell(var), var = var{:}; end
-        
-        assert(tf, 'Unknown variable ''%s''.', var);
-                    
-        var = obj.(type).(var);
-    
-        % avoid infinite loop
-        if nargin < 3
-            caller_id = {};
-            
-        elseif ismember(var.id,caller_id) ...
-                || strcmp(type,'subvars') && any(ismember([var.args {}],caller_id)) % Work-around: don't add nonlinear arguments
-            c = [];
-            return
-        end
-           
-        % also get constraints of parental / derived variables
-        if strcmp(type,'decvars')
-            cs = cellfun(@(sub) getconstraints(obj,sub,[caller_id {var.id}]), [var.subs {}], 'UniformOutput', false);
-        
-        elseif strcmp(type,'subvars')
-            cs = cellfun(@(arg) getconstraints(obj,arg,[caller_id {var.id} var.args]), [var.lvar {}], 'UniformOutput', false);
-        end
-        
-        c = unique([var.cidx cs{:}]);
+    function [tf,p0] = hasinitial(obj,vid)
+        % Check if variable has initial value set.
+        var = getvariable(obj,vid,'decvars');
+
+        [tf,p0] = var.hasinitial;
     end
     
     function tf = hasobjective(obj)
@@ -228,33 +219,14 @@ methods
         tf = ~isempty(obj.objective);
     end
     
-    function [tf,p0] = hasinitial(obj,var)
-        % Check if variable has initial value set.
-        
-        if ischar(var) 
-            var = obj.decvars.(var);
-        end
-        
-        p0 = var.p0;
-        tf = ~isempty(p0);
-    end
-    
-    function vars = haveinitials(obj)
-        % Return list of variables with initial values.
-        ldecvars = getvariables(obj,'decvars');
-        initials = cellfun(@(var) hasinitial(obj,var), ldecvars);
-        
-        vars = ldecvars(initials);
-    end 
-    
-    function [tf,type] = hasvariable(obj,var,type)
+    function [tf,type] = hasvariable(obj,vid,type)
         % Check if variable has been registered (as |type|).
         if nargin > 2
-            tf = isfield(obj.(type), var);
-        elseif isfield(obj.decvars, var)
+            tf = isfield(obj.(type), vid);
+        elseif isfield(obj.decvars, vid)
             tf = true;
             type = 'decvars';
-        elseif isfield(obj.subvars, var)
+        elseif isfield(obj.subvars, vid)
             tf = true;
             type = 'subvars';
         else
@@ -263,14 +235,19 @@ methods
         end
     end
     
-    function tf = isscalar(obj,var)
-        % Check if variable is scalar.
+    function vids = haveinitials(obj)
+        % Return list of variables with initial values.
+        ldecvars = getvariables(obj,'decvars');
+        initials = cellfun(@(var) hasinitial(obj,var), ldecvars);
         
-        if ischar(var)
-            var = obj.decvars.(var);
-        end
-        
-        tf = all(var.sz == 1) && isempty(var.z);
+        vids = ldecvars(initials);
+    end 
+    
+    function tf = isscalar(obj,vid)
+        % Check if decision variable is scalar.
+        var = getvariable(obj,vid,'decvars');
+
+        tf = isscalar(var);
     end
     
     function N = numvariables(obj,type)
@@ -297,6 +274,13 @@ methods
         else
             N = numconstraints(obj) - numconstraints(obj,~linear);
         end
+    end
+    
+    function obj = set.variables(obj,var)
+        % Append variable.
+        type = var.category;
+        vid = var.id;
+        obj.(type).(vid) = var;
     end
 end
 

@@ -44,7 +44,7 @@ assigns = struct;
 
 % get symbolic variables
 for var=varnames
-    symbols.(var{:}) = getvariable(obj.prob,var);
+    symbols.(var{:}) = getsymbol(obj.prob,var);
     assigns.(var{:}) = NaN;
     
     sol.(var{:}) = [];
