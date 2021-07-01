@@ -16,13 +16,14 @@ properties
     
     decvars = [];
     subvars = [];
-    soscons = struct('lhs',{}, 'rhs',{}, 'cmp',{}, 'lvar',{}, 'bvar',{});
+    soscons = bisos.package.BilinearConstraint.empty;
     
     objective;
 end
 
 properties (Access=private,Dependent)
     variables;
+    constraints;
 end
 
 methods
@@ -134,33 +135,28 @@ methods (Access=private)
         obj.variables = newvar;
     end
     
-    function obj = addconstraint(obj,a,cmp,b,lvar,bvar)
+    function obj = addconstraint(obj,a,cmp,b,varargin)
         % Register a new constraint.
-        if nargin < 6
-            bvar = [];
+        if isa(cmp,'function_handle')
+            cmp = func2str(cmp);
         end
         
-        cons.lhs = a;
-        cons.rhs = b;
-        cons.cmp = cmp;
-        cons.lvar = lvar;
-        cons.bvar = bvar;
+        cons = bisos.package.BilinearConstraint.(cmp)(a,b,varargin{:});
         
         N = length(obj.soscons);
-        obj.soscons(N+1,:) = cons;
-        
-        for p=[lvar bvar]
+        for p=cons.variables
             var = obj.getvariable(p);
             
             var.constraints = N+1;
             obj.variables = var;
         end
+        
+        obj.constraints = cons;
     end
 end
 
 methods
     %% Package interface
-    sosc = constraint(obj,sosc,cidx,varargin);
     d = evalobj(obj,varargin);
     
     function [sosc,p] = instantiate(obj,sosc,vid,varargin)
@@ -177,6 +173,10 @@ methods
         [sosc,p] = evaluate(var,sosc,varargin{:});
     end
 
+    function sosc = constraint(obj,sosc,cidx,varargin)
+        % Add constraint(s) #cidx to SOS constraints.
+        sosc = realize(obj.soscons(cidx),sosc,varargin{:});
+    end    
     
     %% Getter functions
     cidx = getconstraints(obj,vid,varargin);
@@ -255,9 +255,9 @@ methods
         if nargin < 2
             N = numvariables(obj,'decvars') + numvariables(obj,'subvars');
         elseif strcmp(type,'scalar')
-            N = sum(structfun(@(p) isscalar(obj,p), obj.decvars));
+            N = sum(structfun(@(var) isscalar(var), obj.decvars));
         elseif strcmp(type,'initial')
-            N = sum(structfun(@(p) hasinitial(obj,p), obj.decvars));
+            N = sum(structfun(@(var) hasinitial(var), obj.decvars));
         elseif isstruct(obj.(type))
             N = length(fieldnames(obj.(type)));
         else
@@ -270,7 +270,7 @@ methods
         if nargin < 2
             N = length(obj.soscons);
         elseif linear
-            N = sum(arrayfun(@(c) isempty(c.bvar), obj.soscons));
+            N = sum(arrayfun(@(C) islinear(C), obj.soscons));
         else
             N = numconstraints(obj) - numconstraints(obj,~linear);
         end
@@ -281,6 +281,11 @@ methods
         type = var.category;
         vid = var.id;
         obj.(type).(vid) = var;
+    end
+    
+    function obj = set.constraints(obj,cons)
+        % Append constraint.
+        obj.soscons.append = cons;
     end
 end
 

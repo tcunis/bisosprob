@@ -50,13 +50,13 @@ methods
         cons = prob.soscons(obj.cidx);
 
         % check that constraints are linear in the decision variables
-        arrayfun(@(i,c) assert(length(intersect(c.bvar,lvar)) <= 1, 'Constraint #%d is bilinear in the step variables.', i), obj.cidx', cons);
+        arrayfun(@(c,i) assert(length(intersect(c.bvar,lvar)) <= 1, 'Constraint #%d is bilinear in the step variables.', i), cons, obj.cidx);
 
         % variables solved for
         solvedfor = [lvar bvar];
 
         % variables involved in constraints & objective
-        involved = unique([cons.lvar cons.bvar ovar]);
+        involved = unique([cons.variables ovar]);
 
         % substituted variables
         subinvld = intersect(involved,getvariables(prob,'subvars'));
