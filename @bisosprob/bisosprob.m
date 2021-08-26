@@ -68,7 +68,7 @@ methods
             varargin = varargin(1:end-1);
         else
             % determine size
-            args = cellfun(@(id) getsymbol(obj,id), varargin, 'UniformOutput', false);
+            args = cellfun(@(id) getsymbol(obj,id), [varargin{:}], 'UniformOutput', false);
             sz = size(f(args{:}));
         end
         
