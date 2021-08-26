@@ -31,7 +31,7 @@ methods
     function stop = run_final(~,~,iter,sol,options)
         % Run final objective step.
         
-        printf(options,'result','Stopped after %d iterations with objective = %g\n.', iter, sol.obj);
+        printf(options,'result','Stopped after %d iterations with objective = %g.\n', iter, sol.obj);
         
         writetofile(options,'result',sol,'result');
         
