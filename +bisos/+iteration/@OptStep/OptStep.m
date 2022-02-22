@@ -64,10 +64,14 @@ methods
         % linear variables & arguments of substituted variables
         sublvar = cellfun(@(sub) prob.subvars.(sub).lvar, subinvld, 'UniformOutput', false);
         subargs = cellfun(@(sub) prob.subvars.(sub).args, subinvld, 'UniformOutput', false);
-        sublvar = [sublvar{:}];
-        subargs = [subargs{:}];
+        sublvar = unique([sublvar{:}]);
+        subargs = unique([subargs{:}]);
 
-        % linear variables in involved substituted variables are already involved
+        % linear variables in involved substituted variables are also involved
+        involved = unique([involved sublvar]);
+        
+        % substituted variables of which all linear variables are involved
+        % those can be solved for too
         issolvbl = cellfun(@(sub) all(ismember(prob.subvars.(sub).lvar, involved)), subinvld);
         subslvbl = subinvld(issolvbl);
 
@@ -91,6 +95,33 @@ methods
 
         % substitute variables in this step
         obj.subnames = subinvld;
+    end
+    
+    function obj = set.varin(obj,value)
+        % Set input variables.
+        if isempty(value)
+            obj.varin = [];
+        else
+            obj.varin = value;
+        end
+    end
+    
+    function obj = set.varout(obj,value)
+        % Set output variables.
+        if isempty(value)
+            obj.varout = [];
+        else
+            obj.varout = value;
+        end
+    end
+    
+    function obj = set.subnames(obj,value)
+        % Set substituted variables.
+        if isempty(value)
+            obj.subnames = [];
+        else
+            obj.subnames = value;
+        end
     end
 end
 
