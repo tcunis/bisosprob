@@ -48,6 +48,12 @@ methods
         obj = obj.addstep('bisect',varargin{:});
     end
     
+    function obj = addbiconv(obj, varargin)
+        % Register a biconvex bisection step.
+        
+        obj = obj.addstep('biconv',varargin{:});
+    end
+    
     function obj = addmessage(obj, varargin)
         % Register a message output.
         

@@ -20,7 +20,7 @@ switch obj.type
         [sosc,p] = sosmdecvar(sosc,obj.z,sz);
         
     case 'sym'
-        [sosc,p] = symdecvar(sosc,obj.z,sz(1));
+        [sosc,p] = symdecvar(sosc,sz(1));
         
     otherwise
         [sosc,p] = decvar(sosc,sz);

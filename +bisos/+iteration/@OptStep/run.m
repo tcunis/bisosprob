@@ -10,7 +10,7 @@ for var=step.varin
     assigns.(var{:}) = sol.(var{:});
 end
 for var=step.subnames
-    if isfield(assigns,var), continue; end % nothing to do
+%     if isfield(assigns,var), continue; end % nothing to do
     [sosc,assigns.(var{:})] = evaluate(prob,sosc,var,symbols,assigns);
 end
 

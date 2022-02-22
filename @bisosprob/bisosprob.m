@@ -40,23 +40,50 @@ methods
     function [obj,a] = decvar(obj,vid,varargin)
         % Register a new scalar decision variable |var|.
         
-        [obj,a] = obj.addmdecvar(vid,1,'',[],varargin{:});
+        if nargin > 2
+            sz = varargin{1};
+            varargin(1) = [];
+        else
+            sz = 1;
+        end
+        
+        [obj,a] = obj.addmdecvar(vid,sz,'',[],varargin{:});
         
         %TODO: set min/max 
+    end
+    
+    function [obj,Q] = symdecvar(obj,vid,sz,varargin)
+        % Register a new symmetric decision variable |var| of given size.
+        
+        [obj,Q] = obj.addmdecvar(vid,sz,'sym',[],varargin{:});
     end
     
     function [obj,p] = polydecvar(obj,vid,z,varargin)
         % Register a new polynomial decision variable |var| with vector of
         % monomials z and optional initial assignment p0.
         
-        [obj,p] = obj.addmdecvar(vid,1,'poly',z,varargin{:});
+        if nargin > 3
+            sz = varargin{1};
+            varargin(1) = [];
+        else
+            sz = 1;
+        end
+        
+        [obj,p] = obj.addmdecvar(vid,sz,'poly',z,varargin{:});
     end
     
     function [obj,s] = sosdecvar(obj,vid,z,varargin)
         % Register a new sum-of-squares decision variable |var| with vector
         % of monomials z and optional initial assignment p0.
         
-        [obj,s] = obj.addmdecvar(vid,1,'sos',z,varargin{:});
+        if nargin > 3
+            sz = varargin{1};
+            varargin(1) = [];
+        else
+            sz = 1;
+        end
+        
+        [obj,s] = obj.addmdecvar(vid,sz,'sos',z,varargin{:});
     end
     
     function [obj,q] = substitute(obj,vid,f,varargin)
@@ -65,7 +92,7 @@ methods
         
         if isdouble(varargin{end})
             sz = varargin{end};
-            varargin = varargin(1:end-1);
+            varargin(end) = [];
         else
             % determine size
             args = cellfun(@(id) getsymbol(obj,id), [varargin{:}], 'UniformOutput', false);
