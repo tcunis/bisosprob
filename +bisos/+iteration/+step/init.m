@@ -16,7 +16,7 @@ methods
         % Run initialisation step.
         info.iter = info.iter + 1;
                 
-        stop = false;
+        stop = isfield(info,'converged') && info.converged;
 
         if info.iter > 1
             return;

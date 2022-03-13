@@ -25,7 +25,7 @@ prob = bisosprob(sosf,x);
 
 % SOS multipliers
 [prob,s1] = sosdecvar(prob,'s1',monomials(x,0));
-[prob,s2] = sosdecvar(prob,'s2',monomials(x,1:2));
+[prob,s2] = sosdecvar(prob,'s2',monomials(x,1));
 
 % level sets
 [prob,g] = decvar(prob,'g');
@@ -52,9 +52,6 @@ P = lyap(J0',eye(2));
 
 prob = setinitial(prob,'V',x'*P*x);
 
-% set trivial inscribing shape
-% prob = setinitial(prob,'b',0);
-
 %% Solve
 prob = setobjective(prob, -b, {'b'});
 
@@ -63,18 +60,9 @@ iter = bisos.Iteration(prob, 'display','step');
 iter = iter.addconvex({'V'});
 iter = iter.addbisect({'s1'},-b,{'b'});
 iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
+% define output message and function
 iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
 iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p);
-
-% plot iteration scheme
-figure(1)
-subplot(1,2,1)
-plot(graph(iter),'Layout','layered')
-
-subplot(1,2,2)
-plot(route(iter),'Layout','layered')
-
-drawnow
 
 % solve iteration
 sol = run(iter);
