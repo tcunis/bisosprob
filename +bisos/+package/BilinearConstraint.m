@@ -159,6 +159,68 @@ methods
         [varargout{1:nargout}] = arrayfun(f, cell(obj), varargin{:});
     end
     
+    function C = subs(obj,varargin)
+        % Substitute variables in constraints.
+        if ~islist(obj)
+            Clhs = subs(obj.lhs,varargin{:});
+            Crhs = subs(obj.rhs,varargin{:});
+            cons = {Clhs,obj.cmp,Crhs,obj.lvar,obj.bvar};
+        else
+            cons = {arrayfun(@(c) subs(c,varargin{:}),obj,'UniformOutput',false)};
+        end
+        
+        C = bisos.package.BilinearConstraint(cons{:});
+    end
+    
+    function J = jacobian(obj,sosf,x)
+        % Compute Jacobian of constraints.
+        if ~islist(obj)
+            Jlhs = sosf.jacob(obj.lhs,x);
+            Jrhs = sosf.jacob(obj.rhs,x);
+            cons = {Jlhs,obj.cmp,Jrhs,obj.lvar,obj.bvar};
+        else
+            cons = {arrayfun(@(c) jacobian(c,sosf,x),obj,'UniformOutput',false)};
+        end
+        
+        J = bisos.package.BilinearConstraint(cons{:});
+    end
+    
+    function C = plus(obj,B)
+        % Add to constraints.
+        if ~isa(B,'bisos.package.BilinearConstraint')
+            % TODO
+            error('Operation not supported for %s.',class(B));
+        end
+        
+        % else:
+        assert(isequal(obj.cmp,B.cmp), 'Dimensions and comparators must agree.')
+        
+        if ~islist(obj)
+            Clhs = plus(obj.lhs,B.lhs);
+            Crhs = plus(obj.rhs,B.rhs);
+            Clvar = unique([obj.lvar B.lvar]);
+            Cbvar = unique([obj.lvar B.lvar]);
+            cons = {Clhs,obj.cmp,Crhs,Clvar,Cbvar};
+        else
+            cons = {cellfun(@(a,b) plus(a,b),cell(obj),cell(B),'UniformOutput',false)};
+        end
+        
+        C = bisos.package.BilinearConstraint(cons{:});
+    end
+    
+    function C = dot(obj,b)
+        % Scalar dot product with polynomial.
+        if ~islist(obj)
+            Clhs = mtimes(obj.lhs,b);
+            Crhs = mtimes(obj.rhs,b);
+            cons = {Clhs,obj.cmp,Crhs,obj.lvar,obj.bvar};
+        else
+            cons = {arrayfun(@(c) dot(c,b),obj,'UniformOutput',false)};
+        end
+        
+        C = bisos.package.BilinearConstraint(cons{:});
+    end
+    
     function varargout = subsref(obj,S)
         % Subscripted reference.
         if isempty(S)
@@ -200,8 +262,10 @@ methods
         ops = getdata(obj,'cmp');
         if isempty(ops)
             cmp = [];
+        elseif length(ops) > 1
+            cmp = ops;
         else
-            cmp = ops{1};
+            cmp = ops{:};
         end
     end
 end
