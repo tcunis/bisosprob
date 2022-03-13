@@ -14,7 +14,7 @@ options = preparelog(obj.options);
 
 if nargin > 1 
     % nothing to do
-elseif options.routing == options.ROUTING.auto
+elseif isrouting(options,'auto')
     % automatic routing
     G = route(obj);
 else
