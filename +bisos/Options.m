@@ -176,6 +176,16 @@ methods
             fclose(obj.fid);
         end
     end
+    
+    %% Routing
+    function tf = isrouting(obj,value)
+        % Check routing option.
+        if isfield(obj.ROUTING,value)
+            value = obj.ROUTING.(value);
+        end
+        
+        tf = ( obj.routing == value );
+    end
 end
 
 end
