@@ -12,13 +12,13 @@ methods
         step.varout = vars;
     end
     
-    function [sol,iter,stop] = run(step,prob,iter,sol,varargin)
+    function [sol,info,stop] = run(step,prob,info,sol,varargin)
         % Run initialisation step.
-        iter = iter + 1;
-        
+        info.iter = info.iter + 1;
+                
         stop = false;
 
-        if iter > 1
+        if info.iter > 1
             return;
         end
         

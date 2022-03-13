@@ -11,7 +11,7 @@ properties (Dependent)
 end
 
 methods (Abstract)
-    [sol,iter,stop] = run(obj,prob,iter,sol,symbols,assigns,varargin);
+    [sol,info,stop] = run(obj,prob,info,sol,symbols,assigns,varargin);
 end
 
 methods
