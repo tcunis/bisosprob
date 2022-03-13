@@ -1,4 +1,4 @@
-classdef Iteration
+classdef Iteration < bisos.package.IterativeMethod
 % Iteration scheme for bilinear sum-of-square problems.
 %
 %% About
@@ -11,10 +11,10 @@ classdef Iteration
 %%
 
 properties
-    prob;
+    %prob;
     
-    steps;
-    options;
+    %steps;
+    %options;
     
     stepgraph;
 end
@@ -22,9 +22,7 @@ end
 methods
     function obj = Iteration(prob, varargin)
         % Create a new iteration scheme.
-        obj.prob = prob;
-        
-        obj.options = bisos.Options(prob.sosf,varargin{:});
+        obj@bisos.package.IterativeMethod(prob, varargin{:});
         
         % initial values and objective
         obj.steps = {
@@ -53,43 +51,27 @@ methods
         
         obj = obj.addstep('biconv',varargin{:});
     end
-    
-    function obj = addmessage(obj, varargin)
-        % Register a message output.
-        
-        obj = obj.addstep('message',varargin{:});
-    end
-    
-    function obj = addoutputfcn(obj,varargin)
-        % Register an output function.
-        
-        obj = obj.addstep('outputfcn',varargin{:});
-    end
 end
 
 methods
     G = graph(obj,G);
     G = route(obj);
+    
+    function [sol,info] = run(obj,varargin)
+        % Overwriting IterativeMethod#run
+        if nargin > 1 
+            % nothing to do
+        elseif isrouting(obj.options, 'auto')
+            % automatic routing
+            varargin = {route(obj)};
+        end
+
+        [sol,info] = run@bisos.package.IterativeMethod(obj,varargin{:});
+    end
 end
 
-methods (Access=private)
+methods (Access=protected)
     obj = addstep(obj,type,varargin);
-
-    function step = newstep(~,type,varargin)
-        % Create a new step.
-        
-        step = bisos.iteration.step.(type)(varargin{:});
-    end
-    
-    function step = getstep(obj,i)
-        % Return i-th step.
-        step = obj.steps{i};
-    end
-    
-    function obj = complete(obj,G)
-        % Add dummy steps to match graph representation.
-        obj.steps(end+1:numnodes(G)) = {newstep(obj,'dummy')};
-    end
 end
 
 end
