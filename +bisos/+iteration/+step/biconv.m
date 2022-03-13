@@ -15,7 +15,7 @@ methods
 %         step.feas = convex(prob,lvar,[],[],varargin{:});
     end
     
-    function [sol,iter,stop] = run(step,prob,iter,sol,symbols,assigns,options)
+    function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
         % Overwriting OptStep#run
         tlb = options.sosoptions.minobj;
         tub = options.sosoptions.maxobj;
@@ -24,7 +24,7 @@ methods
         
         if all(cellfun(@(v) ~isempty(sol.(v)), step.lvar))
             % perform convex subproblem
-            [sol,~,stop] = run(step.conv,prob,iter,sol,symbols,assigns,options);
+            [sol,~,stop] = run(step.conv,prob,info,sol,symbols,assigns,options);
             
             if stop, return; end
             
@@ -41,7 +41,7 @@ methods
         options.sosoptions.maxobj = tub;
         
         % run step as usual
-        [sol,iter,stop] = run@bisos.iteration.step.bisect(step,prob,iter,sol,symbols,assigns,options);
+        [sol,info,stop] = run@bisos.iteration.step.bisect(step,prob,info,sol,symbols,assigns,options);
     end
             
 end

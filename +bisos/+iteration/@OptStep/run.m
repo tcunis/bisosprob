@@ -1,4 +1,4 @@
-function [sol,iter,stop] = run(step,prob,iter,sol,symbols,assigns,options)
+function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
 % Run optimization step.
 
 sosc = newconstraints(prob.sosf,prob.x);
@@ -25,7 +25,7 @@ sosc = constraint(prob,sosc,step.cidx,symbols,assigns,step.variables);
 stepsol = solve(step,sosc,objective,options.sosoptions);
 
 if ~stepsol.feas
-    printf(options,'warning','Step %s infeasible at iteration %d.\n', tostr(step), iter);
+    printf(options,'warning','Step %s infeasible at iteration %d.\n', tostr(step), info.iter);
     % break iteration
     stop = true;
     return

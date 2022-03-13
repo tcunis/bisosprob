@@ -12,7 +12,7 @@ methods
         step.varin = vars;
     end
     
-    function [sol,iter,stop] = run(step,prob,iter,sol,symbols,assigns,options)
+    function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
         % Run objective step.
         for var=step.varin
             assigns.(var{:}) = sol.(var{:});
@@ -21,17 +21,17 @@ methods
         % set objective
         sol.obj = evalobj(prob,symbols,assigns,step.variables);
         
-        printf(options,'step','Objective = %g at iteration %d.\n', sol.obj, iter);
+        printf(options,'step','Objective = %g at iteration %d.\n', sol.obj, info.iter);
         
-        writetofile(options,'step',sol,'iter%d',iter);
+        writetofile(options,'step',sol,'iter%d',info.iter);
         
         stop = false;
     end
     
-    function stop = run_final(~,~,iter,sol,options)
+    function stop = run_final(~,~,info,sol,options)
         % Run final objective step.
         
-        printf(options,'result','Stopped after %d iterations with objective = %g.\n', iter, sol.obj);
+        printf(options,'result','Stopped after %d iterations with objective = %g.\n', info.iter, sol.obj);
         
         writetofile(options,'result',sol,'result');
         

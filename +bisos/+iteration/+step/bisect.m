@@ -33,12 +33,12 @@ methods
         stepsol = goptimize(sosc,objective,sosoptions);
     end
     
-    function [sol,iter,stop] = run(step,prob,iter,sol,symbols,assigns,options)
+    function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
         % Overwriting OptStep#run
         tlb = options.sosoptions.minobj;
         tub = options.sosoptions.maxobj;
         
-        if iter > 1 && max(length(tlb),length(tub)) == 1
+        if info.iter > 1 && max(length(tlb),length(tub)) == 1
             % recover last solution
             obj0 = double(bisos.subs(step.objective,symbols,sol,step.ovar));
 
@@ -52,7 +52,7 @@ methods
         options.sosoptions.maxobj = tub;
         
         % run step as usual
-        [sol,iter,stop] = run@bisos.iteration.OptStep(step,prob,iter,sol,symbols,assigns,options);
+        [sol,info,stop] = run@bisos.iteration.OptStep(step,prob,info,sol,symbols,assigns,options);
     end
 end
 

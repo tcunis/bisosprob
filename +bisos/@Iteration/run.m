@@ -1,4 +1,4 @@
-function sol = run(obj,G)
+function [sol,info] = run(obj,G)
 % Run the specified iteration scheme.
 %
 %% About
@@ -28,7 +28,7 @@ obj = complete(obj,G);
 
 nodes = (1:numnodes(G));
 
-iter = 0;
+info.iter = 0;
 sidx = 1;
 
 tokens = arrayfun(@(a) -length(predecessors(G,a)), nodes);
@@ -54,12 +54,12 @@ sol.obj = Inf;
 % prepare array of solutions
 solution(options.Niter) = sol;
 
-while iter <= options.Niter
+while info.iter <= options.Niter
     % current step
     step = obj.getstep(sidx);
     
     % state-machine
-    [sol,iter,stop] = run(step,obj.prob,iter,sol,symbols,struct,options);
+    [sol,info,stop] = run(step,obj.prob,info,sol,symbols,struct,options);
     
     if stop
         % Abort iteration
@@ -68,7 +68,7 @@ while iter <= options.Niter
 
     if strcmp(step.type, 'obj')
         %TODO: save solution to file
-        solution(iter) = sol;
+        solution(info.iter) = sol;
     end
     
     %% compute next step
@@ -95,7 +95,7 @@ end
 sol = solution(imin);
 
 % evaluate final steps
-fstop = cellfun(@(step) run_final(step,obj.prob,iter,sol,options), obj.steps);
+fstop = cellfun(@(step) run_final(step,obj.prob,info,sol,options), obj.steps);
 
 stop = max([stop fstop]);
 if stop >= 2
