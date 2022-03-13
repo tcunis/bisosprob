@@ -229,6 +229,8 @@ methods
         % Return list of variables of |type|.
         if nargin < 2
             vids = [getvariables(obj,'decvars'), getvariables(obj,'subvars')];
+        elseif isempty(obj.(type))
+            vids = [];
         else
             vids = fieldnames(obj.(type))';
         end
