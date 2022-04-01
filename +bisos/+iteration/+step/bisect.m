@@ -26,11 +26,12 @@ methods
         assigns.(step.ovar{:}) = bisos.subs(step.objective,symbols,assigns,step.ovar);
     end
     
-    function stepsol = solve(~,sosc,objective,sosoptions)
+    function [stepsol,info] = solve(~,sosc,objective,info,sosoptions)
         % Solve quasi-convex optimization step.
         
-        
         stepsol = goptimize(sosc,objective,sosoptions);
+        
+        info.subprob.iter = stepsol.subiter;
     end
     
     function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)

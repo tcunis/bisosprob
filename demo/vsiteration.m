@@ -65,7 +65,7 @@ iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
 iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p);
 
 % solve iteration
-sol = run(iter);
+[sol,info] = run(iter);
 
 disp(sol)
 

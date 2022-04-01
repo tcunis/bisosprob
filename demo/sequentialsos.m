@@ -70,7 +70,7 @@ iter.options.sosoptions.form = 'kernel';
 iter.options.Niter = 100;
 
 % solve iteration
-sol = run(iter);
+[sol,info] = run(iter);
 
 disp(sol)
 

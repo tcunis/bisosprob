@@ -24,7 +24,7 @@ methods
         
         if all(cellfun(@(v) ~isempty(sol.(v)), step.lvar))
             % perform convex subproblem
-            [sol,~,stop] = run(step.conv,prob,info,sol,symbols,assigns,options);
+            [sol,info,stop] = run(step.conv,prob,info,sol,symbols,assigns,options);
             
             if stop, return; end
             
@@ -40,8 +40,14 @@ methods
         options.sosoptions.minobj = tlb;
         options.sosoptions.maxobj = tub;
         
+        % information about convex subproblem
+        convsubprob = info.subprob;
+        
         % run step as usual
         [sol,info,stop] = run@bisos.iteration.step.bisect(step,prob,info,sol,symbols,assigns,options);
+        
+        % information about subproblems
+        info.subprob = [convsubprob info.subprob];
     end
             
 end
