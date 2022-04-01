@@ -15,7 +15,7 @@ properties
 end
 
 methods (Abstract)
-    stepsol = solve(obj,sosc,objective,sosoptions,varargin);
+    [stepsol,info] = solve(obj,sosc,objective,info,sosoptions,varargin);
     [sosc,assigns] = prepare(obj,prob,sosc,symbols,assigns);
 end
 

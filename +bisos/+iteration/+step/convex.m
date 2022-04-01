@@ -9,7 +9,7 @@ methods
         step@bisos.iteration.OptStep(prob,'convex',lvar,[],varargin{:});
     end
     
-    function stepsol = solve(~,sosc,objective,sosoptions)
+    function [stepsol,info] = solve(~,sosc,objective,info,sosoptions)
         % Solve convex optimization step.
         stepsol = optimize(sosc,objective,sosoptions);
     end
