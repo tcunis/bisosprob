@@ -22,7 +22,7 @@ methods (Access=protected)
         % Create a new iterative methods.
         obj.prob = prob;
         
-        obj.options = bisos.Options(prob.sosf,varargin{:});
+        obj.options = obj.newoptions(prob.sosf,varargin{:});
         
         obj.steps = {};
     end
@@ -45,6 +45,11 @@ methods
 end
     
 methods (Access=protected) 
+    function opt = newoptions(~,varargin)
+        % Create new options instance.
+        opt = bisos.package.Options(varargin{:});
+    end
+    
     function step = newstep(~,type,varargin)
         % Create a new step.
         

@@ -21,4 +21,11 @@ methods
     end
 end
 
+methods (Access=protected)
+    function opt = newoptions(~,varargin)
+        % Create new options instance.
+        opt = bisos.sequential.Options(varargin{:});
+    end
+end
+
 end

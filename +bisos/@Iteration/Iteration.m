@@ -72,6 +72,11 @@ end
 
 methods (Access=protected)
     obj = addstep(obj,type,varargin);
+    
+    function opt = newoptions(~,varargin)
+        % Create new options instance.
+        opt = bisos.iteration.Options(varargin{:});
+    end
 end
 
 end
