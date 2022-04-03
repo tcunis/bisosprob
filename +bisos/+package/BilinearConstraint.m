@@ -66,10 +66,18 @@ methods
     function sosc = realize(obj,sosc,varargin)
         % Add to SOS constraints.
         if ~islist(obj)
+            if ~isstruct(varargin{end}) && ~iscell(varargin{end})
+                % last argument is tolerance
+                tol = varargin{end};
+                varargin(end) = [];
+            else
+                tol = [];
+            end
+            
             LHS = bisos.subs(obj.lhs,varargin{:});
             RHS = bisos.subs(obj.rhs,varargin{:});
 
-            sosc = obj.cmp(sosc,LHS,RHS);
+            sosc = obj.cmp(sosc,LHS,RHS,tol);
             return
         end
         
@@ -88,17 +96,17 @@ end
 methods (Static)
     function cons = eq(lhs,rhs,varargin)
         % New equality constraint.
-        cons = bisos.package.BilinearConstraint(lhs,@eq,rhs,varargin{:});
+        cons = bisos.package.BilinearConstraint(lhs,@eqtol,rhs,varargin{:});
     end
     
     function cons = le(lhs,rhs,varargin)
         % New lower-than-or-equal constraint.
-        cons = bisos.package.BilinearConstraint(lhs,@le,rhs,varargin{:});
+        cons = bisos.package.BilinearConstraint(lhs,@letol,rhs,varargin{:});
     end
     
     function cons = ge(lhs,rhs,varargin)
         % New greater-than-or-equal constraint.
-        cons = bisos.package.BilinearConstraint(lhs,@ge,rhs,varargin{:});
+        cons = bisos.package.BilinearConstraint(lhs,@getol,rhs,varargin{:});
     end
     
     function C = empty
