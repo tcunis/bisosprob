@@ -77,6 +77,19 @@ methods
         for var=step.varout
             sol.(var{:}) = subs(assigns.(var{:}), stepsol);
         end
+        
+        if options.checkfeas
+            sosc1 = newconstraints(prob.sosf,prob.x);
+            
+            % nonlinear constraint at current solution
+            sosc1 = realize(prob.soscons,sosc1,symbols,sol,step.variables,options.feastol);
+            
+            feassol = optimize(sosc1,[],options.sosoptions);
+            
+            if ~feassol.feas
+                printf(options,'warning','Infeasible solution of step %s at iteration %d.\n', tostr(step), info.iter);
+            end
+        end
 
         t = [stepsol.primal; stepsol.dual];
         if info.iter == 1
