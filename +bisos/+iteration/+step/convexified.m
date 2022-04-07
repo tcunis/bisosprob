@@ -84,10 +84,10 @@ methods
             % nonlinear constraint at current solution
             sosc1 = realize(prob.soscons,sosc1,symbols,sol,step.variables,options.feastol);
             
-            feassol = optimize(sosc1,[],options.sosoptions);
+            feassol = optimize(sosc1); %,[],options.sosoptions);
             
             if ~feassol.feas
-                printf(options,'warning','Infeasible solution of step %s at iteration %d.\n', tostr(step), info.iter);
+                printf(options,'warning','Infeasible nonlinear solution at iteration %d.\n', info.iter);
             end
         end
 
@@ -97,7 +97,7 @@ methods
             info.primdual = zeros(size(t));
         end
         
-        info.converged = ( norm(t - info.primdual) < 1e-5 );
+        info.converged = ( norm(diag(t' - info.primdual)) < 1e-5 );
             
         info.primdual = t;
         
