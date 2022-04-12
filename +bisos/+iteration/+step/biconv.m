@@ -34,15 +34,17 @@ methods
             % bounds for bisection
             tlb = obj0-tol;
             tub = obj0:+tol:tub;
+        
+            % information about convex subproblem
+            convsubprob = info.subprob;
+        else
+            convsubprob = [];
         end
         
         % set lower and upper bounds
         options.sosoptions.minobj = tlb;
         options.sosoptions.maxobj = tub;
-        
-        % information about convex subproblem
-        convsubprob = info.subprob;
-        
+                
         % run step as usual
         [sol,info,stop] = run@bisos.iteration.step.bisect(step,prob,info,sol,symbols,assigns,options);
         
