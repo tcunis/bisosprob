@@ -65,6 +65,7 @@ methods
         % information about subproblem
         info.subprob = [];
         info.subprob.size = stepsol.sizeLMI;
+        info.subprob.info = stepsol.solverinfo;
         
         if ~stepsol.feas
             printf(options,'warning','Step %s infeasible at iteration %d.\n', tostr(step), info.iter);
