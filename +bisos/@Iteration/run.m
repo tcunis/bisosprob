@@ -97,6 +97,10 @@ end
 % find iteration with minimal objective
 [~,imin] = min([solution.obj]);
 
+if info.iter > 1
+    info.iter = info.iter - 1;
+end
+
 % set output
 sol = solution(imin);
 

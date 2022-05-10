@@ -17,7 +17,7 @@ end
 methods
     function vars = get.variables(obj)
         % Variables involved with step.
-        vars = [obj.varin obj.varout];
+        vars = union(obj.varin, obj.varout);
     end
     
     function str = tostr(obj)
