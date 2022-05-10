@@ -56,7 +56,7 @@ prob = setobjective(prob, -b, {'b'});
 
 % initialize *all* decision variables
 prob = setinitial(prob,'s1',1);
-prob = setinitial(prob,'s2',1);
+prob = setinitial(prob,'s2',x'*x);
 prob = setinitial(prob,'b',1);
 
 % solve by sequential sum-of-squares optimization
@@ -66,7 +66,7 @@ iter = iter.addmessage('gamma = 1,\t beta = %f\n',{'b'});
 iter = iter.addoutputfcn(@plot_sol,{'V' 'b'},p);
 
 % use dual representation
-iter.options.sosoptions.form = 'kernel';
+iter.options.sosoptions.form = 'image';
 iter.options.Niter = 100;
 
 % solve iteration

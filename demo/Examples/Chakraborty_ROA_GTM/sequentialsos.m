@@ -1,8 +1,4 @@
 % Region of attraction estimation for the short period GTM.
-clc
-clear
-set(0,'defaulttextinterpreter','tex');  
-set(0, 'defaultAxesTickLabelInterpreter','tex');  
 
 import sosfactory.sosopt.*
 
@@ -148,16 +144,9 @@ prob = setinitial(prob,'V',x'*P*x);
 prob = setobjective(prob, -b, {'b'});
 
 % initialize *all* decision variables
-prob = setinitial(prob,'s1',0.2304627375902126*x(1)^2 - 0.01417332186558606*x(1)*x(2)... 
-  + 0.1991036617336917*x(2)^2 + 0.004021938667335723*x(1) ...
-  + 0.001178562446395625*x(2) + 0.2788763627278462);
-prob = setinitial(prob,'s2', 0.3434396384089808*x(1)^4 + 0.1195556478572351*x(1)^3*x(2)... 
-  + 0.01245491387382228*x(1)^2*x(2)^2 - 0.1869718394630335*x(1)*x(2)^3 ...
-  + 0.2147202726480677*x(2)^4 + 0.1029548744697305*x(1)^3 + 0.0764664962804...
-  *x(1)^2*x(2) + 0.05749872806725913*x(1)*x(2)^2 + 0.05017292945560166*x(2)^3 ...
-  + 0.108906126751074*x(1)^2 - 0.03809046921627415*x(1)*x(2) ...
-  + 0.1694720934857155*x(2)^2);
-prob = setinitial(prob,'b',1.65);
+prob = setinitial(prob,'s1',x'*x);
+prob = setinitial(prob,'s2',x'*x);
+prob = setinitial(prob,'b',1);
 
 % solve by sequential sum-of-squares optimization
 iter = bisos.Sequential(prob,'display','step');
@@ -167,8 +156,8 @@ iter = iter.addoutputfcn(@plot_sol,{'V' 'b'},p,x,D);
 
 % use dual representation
 iter.options.sosoptions.form = 'kernel';
-iter.options.sosoptions.scaling = 'on';
-iter.options.Niter = 25;
+iter.options.sosoptions.scaling = 'off';
+iter.options.Niter = 100;
 iter.options.sosoptions.solver = 'sedumi';
 iter.options.checkfeas = true;
 iter.options.feastol = 1e-6;
