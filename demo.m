@@ -77,7 +77,7 @@ plot(route(iter),'Layout','layered')
 drawnow
 
 % solve iteration
-sol = run(iter);
+[sol,info] = run(iter);
 
 disp(sol)
 

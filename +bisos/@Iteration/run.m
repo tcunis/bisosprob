@@ -1,4 +1,4 @@
-function sol = run(obj,G)
+function [sol,info] = run(obj,G)
 % Run the specified iteration scheme.
 %
 %% About
@@ -14,7 +14,7 @@ options = preparelog(obj.options);
 
 if nargin > 1 
     % nothing to do
-elseif options.routing == options.ROUTING.auto
+elseif isrouting(options,'auto')
     % automatic routing
     G = route(obj);
 else
@@ -28,7 +28,7 @@ obj = complete(obj,G);
 
 nodes = (1:numnodes(G));
 
-iter = 0;
+info.iter = 0;
 sidx = 1;
 
 tokens = arrayfun(@(a) -length(predecessors(G,a)), nodes);
@@ -53,13 +53,19 @@ end
 sol.obj = Inf;
 % prepare array of solutions
 solution(options.Niter) = sol;
+stepinfo(numnodes(G),options.Niter) = struct('step',[],'sol',[],'info',[]);
 
-while iter <= options.Niter
+while info.iter <= options.Niter
     % current step
     step = obj.getstep(sidx);
     
     % state-machine
-    [sol,iter,stop] = run(step,obj.prob,iter,sol,symbols,struct,options);
+    [sol,info,stop] = run(step,obj.prob,info,sol,symbols,struct,options);
+    
+    % save step solution and info for debug
+    stepinfo(sidx,info.iter).sol  = sol;
+    stepinfo(sidx,info.iter).info = info;
+    stepinfo(sidx,info.iter).step = tostr(step);
     
     if stop
         % Abort iteration
@@ -68,7 +74,7 @@ while iter <= options.Niter
 
     if strcmp(step.type, 'obj')
         %TODO: save solution to file
-        solution(iter) = sol;
+        solution(info.iter) = sol;
     end
     
     %% compute next step
@@ -91,17 +97,23 @@ end
 % find iteration with minimal objective
 [~,imin] = min([solution.obj]);
 
+if info.iter > 1
+    info.iter = info.iter - 1;
+end
+
 % set output
 sol = solution(imin);
 
 % evaluate final steps
-fstop = cellfun(@(step) run_final(step,obj.prob,iter,sol,options), obj.steps);
+fstop = cellfun(@(step) run_final(step,obj.prob,info,sol,options), obj.steps);
 
 stop = max([stop fstop]);
 if stop >= 2
     % solution erroneous
     sol = [];
 end
+
+info.steps = stepinfo(1:(info.iter*numnodes(G)+sidx));
 
 finishlog(options,stop);
 

@@ -11,13 +11,13 @@ properties (Dependent)
 end
 
 methods (Abstract)
-    [sol,iter,stop] = run(obj,prob,iter,sol,symbols,assigns,varargin);
+    [sol,info,stop] = run(obj,prob,info,sol,symbols,assigns,varargin);
 end
 
 methods
     function vars = get.variables(obj)
         % Variables involved with step.
-        vars = [obj.varin obj.varout];
+        vars = union(obj.varin, obj.varout);
     end
     
     function str = tostr(obj)

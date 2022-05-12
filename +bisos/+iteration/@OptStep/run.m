@@ -1,7 +1,9 @@
-function [sol,iter,stop] = run(step,prob,iter,sol,symbols,assigns,options)
+function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
 % Run optimization step.
 
 sosc = newconstraints(prob.sosf,prob.x);
+
+info.subprob = [];
             
 for var=step.lvar
     [sosc,assigns.(var{:})] = instantiate(prob,sosc,var);
@@ -22,10 +24,13 @@ objective = bisos.subs(step.objective,symbols,assigns,step.variables);
 sosc = constraint(prob,sosc,step.cidx,symbols,assigns,step.variables);
 
 % solve optimization
-stepsol = solve(step,sosc,objective,options.sosoptions);
+[stepsol,info] = solve(step,sosc,objective,info,options.sosoptions);
+
+% information about subproblem
+info.subprob.size = stepsol.sizeLMI;
 
 if ~stepsol.feas
-    printf(options,'warning','Step %s infeasible at iteration %d.\n', tostr(step), iter);
+    printf(options,'warning','Step %s infeasible at iteration %d.\n', tostr(step), info.iter);
     % break iteration
     stop = true;
     return
