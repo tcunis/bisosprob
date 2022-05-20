@@ -65,6 +65,12 @@ methods
         
         obj = obj.addstep('outputfcn',varargin{:});
     end
+    
+    function obj = addconvergence(obj,varargin)
+        % Check for convergence of level sets
+        
+        obj = obj.addstep('convergence',varargin{:});
+    end
 end
 
 methods

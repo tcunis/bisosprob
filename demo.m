@@ -64,6 +64,7 @@ iter = iter.addconvex({'V'});
 iter = iter.addbisect({'s1'},-b,{'b'});
 iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
 iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
+iter = iter.addconvergence({'V' 'g'});
 iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p);
 
 % plot iteration scheme

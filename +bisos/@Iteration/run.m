@@ -60,7 +60,11 @@ while info.iter <= options.Niter
     step = obj.getstep(sidx);
     
     % state-machine
-    [sol,info,stop] = run(step,obj.prob,info,sol,symbols,struct,options);
+    if ~strcmp(step.type, 'convergence')
+        [sol,info,stop] = run(step,obj.prob,info,sol,symbols,struct,options);
+    else
+        [sol,info,stop] = run(step,obj.prob,info,sol,symbols,struct,options, solution);
+    end
     
     % save step solution and info for debug
     stepinfo(sidx,info.iter).sol  = sol;

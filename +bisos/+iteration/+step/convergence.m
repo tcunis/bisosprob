@@ -1,5 +1,5 @@
 classdef convergence < bisos.iteration.Step
-   % Verify convergence
+   
 properties
     type = 'convergence';
     varout = [];
@@ -8,7 +8,7 @@ end
 
 methods
     function step = convergence(prob, vars)
-        % New objective step.
+        % New check convergence step.
         step.varin = vars;
     end
     
