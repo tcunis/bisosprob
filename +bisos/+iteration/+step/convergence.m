@@ -7,7 +7,7 @@ properties
 end
 
 methods
-    function step = convergence(prob, vars)
+    function step = convergence(~, vars)
         % New check convergence step.
         step.varin = vars;
     end
@@ -31,38 +31,25 @@ methods
         aux = (assigns.(step.varin{1})/assigns.(step.varin{2})...
             -prev.(step.varin{1})/prev.(step.varin{2}))^2;
         
-        if(step.poly_diff(prob, aux)<10^-9)
-            stop = true;
+        if(step.poly_diff(prob, aux)<10^-11)
+            info.converged = true;
+            stop=false;
             return 
         end
         
         stop = false;
     end
     
-    function Volume = poly_diff(step, prob, diff)
-        x = -1:0.01:1;
-        [xx,yy] = ndgrid(x,x);
-        for i= length(x)
-            for j=1:length(x)
-                mat(i,j) = double(subs(diff,prob.x,[xx(i,j);yy(i,j)]));
-            end
-        end
-         
-        b{1} = x;
-        b{2} = x;
+    function Volume = poly_diff(~, prob, diff)
         
-        Volume = step.trapezoidal_rule_nd_integral(b, mat, 2);
+        for i = 1:length(prob.x)
+           diff = int(diff, prob.x(i), [-1 1]);  
+        end
+        
+        Volume = double(diff)/2^length(prob.x);
         
     end
     
-    function out = trapezoidal_rule_nd_integral(step,x, mat, N)
-        mat = trapz(x{N},mat, N);
-        if N==1
-            out=mat;
-            return;
-        end
-        out = step.trapezoidal_rule_nd_integral(x, mat, N-1);
-    end
 end
 
 methods (Access=protected)
