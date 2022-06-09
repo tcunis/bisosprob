@@ -143,6 +143,27 @@ iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
 
 Sometimes, `BiSOS` might identify some constraints as being involved in the optimization step which the user has determined to hold trivially. Such constraints can be excluded from the optimization step by the optional syntax `addconvex(..., excl)` or `addbisect(..., excl)` where `excl` is a list of decision variables disjunct from `lvar` or `ovar`; any constraint with an excluded variable is omitted from the optimization step.
 
+**Termination step: Convergence and termination rule** -
+The user can add a convergence supervision of a certain set-level, this is evaluated by the integral of the norm of the difference between the previous normalized polynomial and the current over a certain domain (hypercube). Two properties can be setup such as tolerance and the domain of integration. Default: `ctol = 10^-9` and `domain = [-1 1]`.
+
+```
+iter = iter.addconvergence({'V' 'g'}, {'ctol', Value1, 'domain', [xmin xmax]});
+```
+
+The algorithm cycle can be automatically terminated when a certain rule isn't followed, for example, over each cycle the value `'b'` must always increase and whenever it doesn't the cycle must stop. The step defition has 3 inputs: `previous`, `current` and `operator`, meaning that the algorithm must continue except when `previous` `operator` `current` fails.  
+
+```
+iter = iter.addtermination({ varsX },{ varsY }, operator);
+```
+
+A more generalized and complex termination rule can also be setup with the same step initialization using function handles. (***!!! Still in development !!!***)
+
+
+```
+iter = iter.addtermination({ func_handle1, {vars1,... ,varsN}},{func_handle2 ,{vars1,... ,varsM}}, operator);
+```
+
+
 **Output steps: Messages and arbitrary output functions** -
 Outputs for each iteration add extended possibilities for user supervision and interaction. Currently supported are formatted messages printed to the stream (see `Options.fid`) and custom output function handels.
 

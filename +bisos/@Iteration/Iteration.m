@@ -71,6 +71,12 @@ methods
         
         obj = obj.addstep('convergence',varargin{:});
     end
+    
+    function obj = addtermination(obj, varargin)
+        % Register a termination rule
+        
+        obj = obj.addstep('termination',varargin{:});
+    end
 end
 
 methods
