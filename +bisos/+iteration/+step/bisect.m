@@ -31,7 +31,7 @@ methods
         
         stepsol = goptimize(sosc,objective,sosoptions);
         
-        info.subprob.iter = stepsol.subiter;
+        info.bisections = stepsol.subiter;
     end
     
     function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
