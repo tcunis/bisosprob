@@ -14,9 +14,6 @@ properties
     
     fhan2;
     vars2; % current variables
-    
-    
-    
 end
 
 methods
@@ -53,30 +50,31 @@ methods
         % save operator (maybe I should process it for any kind that 
         % may appear)
         
-        if strcmp(op, '>=') || strcmp(op, 'ge') 
+        switch (op)
+        case {'>=', 'ge'} 
            step.operator = @ge; 
-        elseif strcmp(op, '<=') || strcmp(op, 'le')
+        case {'<=', 'le'}
            step.operator = @le; 
-        elseif strcmp(op, '<') || strcmp(op, 'lt')
+        case {'<', 'lt'}
            step.operator = @lt; 
-        elseif strcmp(op, '>') || strcmp(op, 'gt')
+        case {'>', 'gt'}
            step.operator = @gt;  
-        elseif strcmp(op, '==') || strcmp(op, 'eq')
+        case {'==', 'eq'}
            step.operator = @eq;  
-        elseif strcmp(op, '~=') || strcmp(op, 'ne')
-           step.operator = @ne;    
+        case {op, '~=', 'ne'}
+           step.operator = @ne;
+        otherwise
+           error('Operator "%s" not valid.', op)
         end
-        
-        assert(~isempty(step.operator), 'Operator not valid.');
         
 
     end
     
     function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
         % Run objective step.
-        
+        stop = false;
+
         if info.iter==1
-           stop = false;
            return 
         end
         
@@ -85,26 +83,13 @@ methods
         if step.operator(A,B)
             info.converged = true;
         end
-        
-        stop = false;
     end
-    
-    function Volume = poly_diff(step, prob, diff)
-        
-        for i = 1:length(prob.x)
-           diff = int(diff, prob.x(i), step.domain);  
-        end
-        
-        Volume = double(diff)/(step.domain(2)-step.domain(1))^length(prob.x);
-        
-    end
-    
 end
 
 methods (Access=protected)
     function str = varout2str(~)
         % Overriding bisos.iteration.Step#varout2str
-        str = 'term\_rule';
+        str = 'termrule';
     end
 end
 
