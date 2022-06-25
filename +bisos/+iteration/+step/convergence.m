@@ -9,45 +9,44 @@ properties
     levels;
     
     % default properties for convergence verification
-    ctol = 10^-9;
-    domain = [-1 1];
+    options = struct('ctol', 10^-9, 'domain', [-1 1]);
+    
 end
 
 methods
     function step = convergence(~, vars, varargin)
         % new level set convergence setup
         
+        % get name of variables that the step needs to start
         for i = 1:length(vars)
             if isa(vars{i}, 'char')
                 step.varin{length(step.varin)+1} = vars{i};
             end
         end
-        
-        
+         
         for i = 1:2:length(vars)
            step.levels{length(step.levels)+1} = {vars{i} vars{i+1}};   
         end
         
-        
-        % set new options
-        if isempty(varargin)
-            return;
-        end
-        
         for i=1:2:length(varargin{:})
-            step.(varargin{:}{i}) = varargin{:}{i+1};
+            if isfield(step.options, varargin{:}{i})
+                step.options.(varargin{:}{i}) = varargin{:}{i+1};
+            end
         end
     end
     
     function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
         % Run objective step.
         
+        stop = false;
+
         if info.iter==1
-           stop = false;
            return 
+        else
+            info.converged = true;
         end
-    
-        info.converged = true;
+
+        % loop to get variables value in sol from current and last cycle
         for i = 1:length(step.levels)
             
             level = step.levels{i};
@@ -68,28 +67,23 @@ methods
                prev{2} = level{2};
             end
             
-            aux_pol = (pres{1}/pres{2} - prev{1}/prev{2})^2; 
+            volume = step.poly_diff(prob, (pres{1}/pres{2} - ...
+                prev{1}/prev{2})^2);
             
-            if(step.poly_diff(prob, aux_pol) > step.ctol)
-                info.converged = false;
-            end
-            
+            info.converged = info.converged && (volume > step.ctol);
         end
-        
-        
-        stop = false;
     end
     
-    function Volume = poly_diff(step, prob, diff)
-        
+    function volume = poly_diff(step, prob, diff)
+        opt=step.options;
+
         for i = 1:length(prob.x)
-           diff = int(diff, prob.x(i), step.domain);  
+           diff = int(diff, prob.x(i), opt.domain);  
         end
         
-        Volume = double(diff)/(step.domain(2)-step.domain(1))^length(prob.x);
+        volume = double(diff)/(opt.domain(2)-opt.domain(1))^length(prob.x);
         
-    end
-    
+    end  
 end
 
 methods (Access=protected)
