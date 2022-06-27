@@ -5,47 +5,21 @@ properties
     varout = [];
     varin;
     data_prev = true;
-    
-    % save function handles and variables in play (maybe a struct would be nice)
+
     operator;
     
-    fhan1; 
-    vars1; % previous variables
-    
-    fhan2;
-    vars2; % current variables
+    % Structures with info about condtion 
+    prev = struct('fhan', @(x) x, 'vars', []);
+    curr = struct('fhan', @(x) x, 'vars', []);
 end
 
 methods
     function step = termination(~, previous, current, op, varargin)
         % setup termination rule
         
-        % get variabled needed as input in a certain cycle and save
-        % function handles and other variables needed
-        if length(current)==1
-            % in case NO function handle is defined
-            for i = 1:length(current)
-                step.varin{length(step.varin)+1}=current{i};
-            end
-            step.vars2 = current;
-        else
-            % in case some function handle is defined
-            for i = 1:length(current{2})
-                step.varin{length(step.varin)+1}=current{2}{i};
-            end
-            step.vars2 = current{2};
-            step.fhan2 = current{1};
-        end
-        
-        if length(previous)==1
-            % in case NO function handle is defined
-            step.vars1 = previous;
-        else
-            % in case some function handle is defined
-            step.vars1 = previous{2};
-            step.fhan1 = previous{1};
-        end
-        
+        step.curr = step.setup2struct(step.curr, current);
+        step.varin = step.curr.vars;
+        step.prev = step.setup2struct(step.prev, previous);
         
         % save operator (maybe I should process it for any kind that 
         % may appear)
@@ -66,8 +40,6 @@ methods
         otherwise
            error('Operator "%s" not valid.', op)
         end
-        
-
     end
     
     function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
@@ -78,13 +50,77 @@ methods
            return 
         end
         
-        A = double(info.solutions(info.iter -1).(step.vars2{1}));
-        B = double(sol.(step.vars1{1}));
-        if step.operator(A,B)
+        % Prepare previous term for condition evaluation
+
+        value1 = step.calcfhan(info.solutions(info.iter -1), step.prev); 
+
+        % Prepare current term for condition evaluation
+            
+        value2 = step.calcfhan(sol, step.curr);
+
+        if step.operator(value1, value2)
             info.converged = true;
         end
     end
 end
+
+methods(Static)
+    function value = calcfhan(sol, sstruct) 
+        % sol: solutions that are accessed 
+        % sstruct: state struture, it can be either previous or current
+        % state
+
+        % preallocate auxiliary variable 'v'
+        v = cell(1,length(sstruct.vars));
+
+        for i=1:length(sstruct.vars)
+            if isfield(sol, sstruct.vars{i})
+                v{i} = double(sol.(sstruct.vars{i}));
+            else
+                error('Non existance of variable in solutions.');
+            end
+        end
+        value = sstruct.fhan(v{:});
+    end
+
+    function  defstruct = setup2struct(defstruct, cdef)
+
+        if length(cdef)>1 
+            if isa(cdef{1}, "function_handle")
+                defstruct.fhan = cdef{1};
+                
+            % Check coherence between the number of inputs defined in 
+            % functions handle and the number of inputs given
+                if nargin(defstruct.fhan) ~= (length(cdef)-1)
+                    error('Inconsistency between function handle and number of input variables.');
+                end
+                
+                % save variables name in defstruct
+                for i=2:length(cdef)
+                    % verify if input data type os 'char'
+                    if ~ischar(cdef{i})
+                        error('error in variables type.');
+                    else
+                        defstruct.vars{end+1} = cdef{i};
+                    end
+                end
+            else
+                error('No function handle is given.')
+            end
+        elseif ~isempty(cdef)
+
+            if ~ischar(cdef{:})
+                error('error in variable type.');
+            else
+                defstruct.vars = cdef;
+            end
+        % in case no input is given
+        else
+            error('Some input variable is empty.')
+        end
+    end
+end
+
 
 methods (Access=protected)
     function str = varout2str(~)
