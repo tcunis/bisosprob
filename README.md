@@ -150,17 +150,17 @@ The user can add a convergence supervision of a certain set-level, this is evalu
 iter = iter.addconvergence({'V' 'g'}, {'ctol', Value1, 'domain', [xmin xmax]});
 ```
 
-The algorithm cycle can be automatically terminated when a certain rule isn't followed, for example, over each cycle the value `'b'` must always increase and whenever it doesn't the cycle must stop. The step defition has 3 inputs: `previous`, `current` and `operator`, meaning that the algorithm must continue except when `previous` `operator` `current` fails.  
+The algorithm cycle can be automatically terminated when a certain rule isn't followed, for example, over each cycle the value `'b'` must always increase and whenever it doesn't the cycle must stop. The step defition has 3 inputs: `previous`, `current` and `operator` (`OP`), meaning that the algorithm will continue except when the condition '`previous OP current`' is violated.  
 
 ```
-iter = iter.addtermination({ varsX },{ varsY }, operator);
+ter = iter.addtermination({var1}, {var2}, operator);
 ```
 
-A more generalized and complex termination rule can also be setup with the same step initialization using function handles. (***!!! Still in development !!!***)
+A more generalized and complex termination rule can also be setup with the same step initialization using function handles.
 
 
 ```
-iter = iter.addtermination({ func_handle1, {vars1,... ,varsN}},{func_handle2 ,{vars1,... ,varsM}}, operator);
+iter = iter.addtermination({ func_handle1, vars1,... ,varsN },{func_handle2 , vars1,... ,varsM }, operator);
 ```
 
 
