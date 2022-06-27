@@ -34,6 +34,19 @@ methods
 end
 
 methods (Access=protected)
+    function sub = getinfo(obj,info)
+        % Get step-specific information from info struct.
+        str = tostr(obj);
+        sub = info.steps.(str);
+    end
+    
+    function info = setinfo(obj,info,sub)
+        % Set step-specific information in info struct.
+        str = tostr(obj);
+        sub.stepname = str;
+        info.steps.(str) = sub;
+    end
+    
     function str = varin2str(obj)
         % String representation input variables.
         c = @(s) s(1:end-1);
