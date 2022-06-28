@@ -4,7 +4,6 @@ properties
     type = 'convergence';
     varout = [];
     varin;
-    data_prev = true;
     
     levels;
     
@@ -35,44 +34,52 @@ methods
         end
     end
     
-    function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
+    function [sol,info,stop] = run(step,prob,info,sol,varargin)
         % Run objective step.
         
         stop = false;
 
-        if info.iter==1
-           return 
-        else
+        if info.iter > 1
+            stepinfo = getinfo(step,info);
+            
             info.converged = true;
+        else
+            stepinfo.levels = cell(length(step.levels),2);
         end
-
-        % loop to get variables value in sol from current and last cycle
+        
+        % loop to get variables value in sol
         for i = 1:length(step.levels)
             
             level = step.levels{i};
             
             if isa(level{1}, 'char')
                pres{1} = sol.(level{1});
-               prev{1} = info.solutions(info.iter - 1).(level{1}); 
+               prev{1} = stepinfo.levels{i,1}; 
             else
                pres{1} = level{1};
-               prev{1} = level{1}; 
+               prev{1} = level{1};
             end
             
             if isa(level{2}, 'char')
                pres{2} = sol.(level{2});
-               prev{2} = info.solutions(info.iter - 1).(level{2});
+               prev{2} = stepinfo.levels{i,2};
             else
                pres{2} = level{2};
                prev{2} = level{2};
             end
             
-            pol = (pres{1}/pres{2} - prev{1}/prev{2})^2;
-            
-            volume = step.poly_diff(prob.x, pol, step.options.domain);
+            if info.iter > 1
+                pol = (pres{1}/pres{2} - prev{1}/prev{2})^2;
 
-            info.converged = info.converged && (volume < step.options.ctol);
+                volume = step.poly_diff(prob.x, pol, step.options.domain);
+
+                info.converged = info.converged && (volume < step.options.ctol);
+            end
+            
+            stepinfo.levels(i,:) = pres;
         end
+        
+        info = setinfo(step,info,stepinfo);
     end
 end
 

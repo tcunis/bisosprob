@@ -4,11 +4,10 @@ properties
     type = 'termination';
     varout = [];
     varin;
-    data_prev = true;
 
     operator;
     
-    % Structures with info about condtion 
+    % Structures with info about condition 
     prev = struct('fhan', @(x) x, 'vars', []);
     curr = struct('fhan', @(x) x, 'vars', []);
 end
@@ -42,29 +41,32 @@ methods
         end
     end
     
-    function [sol,info,stop] = run(step,prob,info,sol,symbols,assigns,options)
+    function [sol,info,stop] = run(step,~,info,sol,varargin)
         % Run objective step.
         stop = false;
 
-        if info.iter==1
-           return 
+        if info.iter > 1
+            stepinfo = getinfo(step,info);
+        
+            % Prepare current term for condition evaluation    
+            value2 = step.calcfhan(sol, step.curr);
+        
+            % Get previous term for condition evaluation
+            value1 = stepinfo.value;
+
+            if step.operator(value1, value2)
+                info.converged = true;
+            end
         end
         
-        % Prepare previous term for condition evaluation
-
-        value1 = step.calcfhan(info.solutions(info.iter -1), step.prev); 
-
-        % Prepare current term for condition evaluation
-            
-        value2 = step.calcfhan(sol, step.curr);
-
-        if step.operator(value1, value2)
-            info.converged = true;
-        end
+        % Store 'previous' term for next iteration
+        stepinfo.value = step.calcfhan(sol, step.prev);
+        
+        info = setinfo(step,info,stepinfo);
     end
 end
 
-methods(Static)
+methods (Static)
     function value = calcfhan(sol, sstruct) 
         % sol: solutions that are accessed 
         % sstruct: state struture, it can be either previous or current

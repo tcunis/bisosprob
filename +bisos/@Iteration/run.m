@@ -60,10 +60,6 @@ while info.iter <= options.Niter
     % current step
     step = obj.getstep(sidx);
     
-    if isprop(step,'data_prev') && step.data_prev
-       info.solutions = solution; 
-    end
-    
     % state-machine
     [sol,info,stop] = run(step,obj.prob,info,sol,symbols,struct,options);
     
