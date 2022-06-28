@@ -67,22 +67,25 @@ methods
                prev{2} = level{2};
             end
             
-            volume = step.poly_diff(prob, (pres{1}/pres{2} - ...
-                prev{1}/prev{2})^2);
+            pol = (pres{1}/pres{2} - prev{1}/prev{2})^2;
             
-            info.converged = info.converged && (volume > step.ctol);
+            volume = step.poly_diff(prob.x, pol, step.options.domain);
+
+            info.converged = info.converged && (volume < step.options.ctol);
         end
     end
-    
-    function volume = poly_diff(step, prob, diff)
-        opt=step.options;
+end
 
-        for i = 1:length(prob.x)
-           diff = int(diff, prob.x(i), opt.domain);  
+methods(Static)
+    function volume = poly_diff(x, pol, domain)
+        % perform integral over a hypercube 
+        % the integral is exact with no approximations envolved
+        % ONLY WORKS FOR POLYNOMIALS OF Sosoptfatory
+        for i = 1:length(x)
+           pol = int(pol, x(i), domain);  
         end
         
-        volume = double(diff)/(opt.domain(2)-opt.domain(1))^length(prob.x);
-        
+        volume = double(pol)/(domain(2)-domain(1))^length(x);
     end  
 end
 
