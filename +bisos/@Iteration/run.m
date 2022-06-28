@@ -53,7 +53,8 @@ end
 sol.obj = Inf;
 % prepare array of solutions
 solution(options.Niter) = sol;
-stepinfo(numnodes(G),options.Niter) = struct('step',[],'sol',[],'info',[]);
+stepinfo(options.Niter) = cell(1);
+info.steps = table;
 
 while info.iter <= options.Niter
     % current step
@@ -66,11 +67,6 @@ while info.iter <= options.Niter
     % state-machine
     [sol,info,stop] = run(step,obj.prob,info,sol,symbols,struct,options);
     
-    % save step solution and info for debug
-    stepinfo(sidx,info.iter).sol  = sol;
-    stepinfo(sidx,info.iter).info = info;
-    stepinfo(sidx,info.iter).step = tostr(step);
-    
     if stop
         % Abort iteration
         break;
@@ -79,6 +75,7 @@ while info.iter <= options.Niter
     if strcmp(step.type, 'obj')
         %TODO: save solution to file
         solution(info.iter) = sol;
+        stepinfo(info.iter) = {info.steps};
     end
     
     %% compute next step
@@ -117,7 +114,7 @@ if stop >= 2
     sol = [];
 end
 
-info.steps = stepinfo(1:(info.iter*numnodes(G)+sidx));
+info.steps = vertcat(stepinfo{1:info.iter});
 
 finishlog(options,stop);
 
