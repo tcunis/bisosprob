@@ -66,7 +66,7 @@ methods
     end
 end
 
-methods (Static)
+methods (Static, Access=private)
     function value = calcfhan(sol, sstruct) 
         % sol: solutions that are accessed 
         % sstruct: state struture, it can be either previous or current
