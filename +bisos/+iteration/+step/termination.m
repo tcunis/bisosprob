@@ -13,13 +13,18 @@ properties
 end
 
 methods
-    function step = termination(~, previous, current, op, varargin)
+    function step = termination(prob, previous, current, op, varargin)
         % setup termination rule
         
+        
+
         step.curr = step.setup2struct(step.curr, current);
         step.varin = step.curr.vars;
         step.prev = step.setup2struct(step.prev, previous);
         
+        cellfun(@(v) assert(hasvariable(prob,v),'Unknown variable ''%s''.',...
+            v), [step.curr.vars step.prev.vars]);
+
         % save operator (maybe I should process it for any kind that 
         % may appear)
         
@@ -74,51 +79,37 @@ methods (Static, Access=private)
 
         % preallocate auxiliary variable 'v'
         v = cell(1,length(sstruct.vars));
-
         for i=1:length(sstruct.vars)
-            if isfield(sol, sstruct.vars{i})
-                v{i} = double(sol.(sstruct.vars{i}));
-            else
-                error('Non existance of variable in solutions.');
-            end
+            v{i} = double(sol.(sstruct.vars{i}));
         end
+
         value = sstruct.fhan(v{:});
     end
 
     function  defstruct = setup2struct(defstruct, cdef)
 
-        if length(cdef)>1 
-            if isa(cdef{1}, "function_handle")
-                defstruct.fhan = cdef{1};
+        assert(~isempty(cdef), 'No input variables given.')
+        
+        if length(cdef)>1
+            assert(isa(cdef{1}, "function_handle"),...
+                'No function handle but more than one variable given.')
+            
+            defstruct.fhan = cdef{1};
                 
             % Check coherence between the number of inputs defined in 
             % functions handle and the number of inputs given
-                if nargin(defstruct.fhan) ~= (length(cdef)-1)
-                    error('Inconsistency between function handle and number of input variables.');
-                end
+            if nargin(defstruct.fhan) ~= (length(cdef)-1)
+                error('Wrong number of inputs (expected: %d, given: %d).',...
+                    nargin(defstruct.fhan), length(cdef)-1);
+            end
                 
-                % save variables name in defstruct
-                for i=2:length(cdef)
-                    % verify if input data type os 'char'
-                    if ~ischar(cdef{i})
-                        error('error in variables type.');
-                    else
-                        defstruct.vars{end+1} = cdef{i};
-                    end
-                end
-            else
-                error('No function handle is given.')
+            % save variables name in defstruct
+            defstruct.vars = cell(1,length(cdef)-1);
+            for i=2:length(cdef)
+                defstruct.vars{i-1} = cdef{i};
             end
-        elseif ~isempty(cdef)
-
-            if ~ischar(cdef{:})
-                error('error in variable type.');
-            else
-                defstruct.vars = cdef;
-            end
-        % in case no input is given
         else
-            error('Some input variable is empty.')
+            defstruct.vars = cdef;
         end
     end
 end
