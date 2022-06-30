@@ -31,7 +31,6 @@ methods
         step.levels = reshape(vars,[],2)';
         
         % assign options
-        varargin = [varargin{:}];
         for i=1:2:length(varargin)
             name = varargin{i}; value = varargin{i+1};
             assert(isfield(step.options, name), 'Unknown option ''%s''.', name);
