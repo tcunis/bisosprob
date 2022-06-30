@@ -77,6 +77,12 @@ methods
         
         obj = obj.addstep('termination',varargin{:});
     end
+    
+    function obj = addtransfer(obj, varargin)
+        % Register a convex optimization step.
+        
+        obj = obj.addstep('transfer',varargin{:});
+    end
 end
 
 methods
