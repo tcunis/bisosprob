@@ -16,12 +16,11 @@ methods
     function step = termination(prob, previous, current, op, varargin)
         % setup termination rule
         
-        
-
         step.curr = step.setup2struct(step.curr, current);
-        step.varin = step.curr.vars;
         step.prev = step.setup2struct(step.prev, previous);
-        
+
+        step.varin = union(step.curr.vars, step.prev.vars);
+
         cellfun(@(v) assert(hasvariable(prob,v),'Unknown variable ''%s''.',...
             v), [step.curr.vars step.prev.vars]);
 
