@@ -147,7 +147,7 @@ Sometimes, `BiSOS` might identify some constraints as being involved in the opti
 The user can add a convergence supervision of a certain set-level, this is evaluated by the integral of the norm of the difference between the previous normalized polynomial and the current over a certain domain (hypercube). Two properties can be setup such as tolerance and the domain of integration. Default: `ctol = 10^-9` and `domain = [-1 1]`.
 
 ```
-iter = iter.addconvergence({'V' 'g'}, {'ctol', Value1, 'domain', [xmin xmax]});
+iter = iter.addconvergence({'V' 'g'}, 'ctol', Value1, 'domain', [xmin xmax]);
 ```
 
 The algorithm cycle can be automatically terminated when a certain rule isn't followed, for example, over each cycle the value `'b'` must always increase and whenever it doesn't the cycle must stop. The step defition has 3 inputs: `previous`, `current` and `operator` (`OP`), meaning that the algorithm will continue except when the condition '`previous OP current`' is violated.  
