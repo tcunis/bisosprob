@@ -21,9 +21,14 @@ methods
         % set objective
         sol.obj = evalobj(prob,symbols,assigns,step.variables);
         
+        stepinfo.sol   = sol;
+        stepinfo.value = sol.obj;
+        
         printf(options,'step','Objective = %g at iteration %d.\n', sol.obj, info.iter);
         
         writetofile(options,'step',sol,'iter%d',info.iter);
+        
+        info = setinfo(step,info,stepinfo);
         
         stop = false;
     end
@@ -36,6 +41,11 @@ methods
         writetofile(options,'result',sol,'result');
         
         stop = false;
+    end
+    
+    function str = name(step)
+        % Overriding Step.name
+        str = sprintf('%s', step.type);
     end
 end
 

@@ -51,8 +51,7 @@ for var=varnames
 end
 
 sol.obj = Inf;
-% prepare array of solutions
-solution(options.Niter) = sol;
+% prepare array of step information
 stepinfo(options.Niter) = cell(1);
 info.steps = table;
 
@@ -68,11 +67,7 @@ while info.iter <= options.Niter
         break;
     end
 
-    if strcmp(step.type, 'obj')
-        %TODO: save solution to file
-        solution(info.iter) = sol;
-        stepinfo(info.iter) = {info.steps};
-    end
+    stepinfo(info.iter) = {info.steps};
     
     %% compute next step
     % mark current node as visited
@@ -91,15 +86,16 @@ while info.iter <= options.Niter
     sidx = nidx;
 end
             
-% find iteration with minimal objective
-[~,imin] = min([solution.obj]);
-
 if info.iter > 1
     info.iter = info.iter - 1;
 end
+stepinfo = vertcat(stepinfo{1:info.iter});
+
+% find iteration with minimal objective
+[~,imin] = min([stepinfo.obj.value]);
 
 % set output
-sol = solution(imin);
+sol = stepinfo.obj(imin).sol;
 
 % evaluate final steps
 fstop = cellfun(@(step) run_final(step,obj.prob,info,sol,options), obj.steps);
@@ -110,7 +106,7 @@ if stop >= 2
     sol = [];
 end
 
-info.steps = vertcat(stepinfo{1:info.iter});
+info.steps = stepinfo;
 
 finishlog(options,stop);
 
