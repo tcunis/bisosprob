@@ -21,7 +21,7 @@ prob = bisosprob(sosf,x);
 
 %% Decision variables
 % Lyapunov candidate
-[prob,V] = polydecvar(prob,'V',[x(1)^2; x(1)*x(2); x(2)^2]);
+[prob,V] = polydecvar(prob,'V',monomials(x,1:4));
 
 % SOS multipliers
 [prob,s1] = sosdecvar(prob,'s1',monomials(x,0));
@@ -42,6 +42,9 @@ prob = ge(prob, V, l, {'V'});
 % Inscribing ellipsoid
 prob = le(prob, V - g, s1*(p-b), {'V' 'g'}, {'b' 's1'});
 prob = ge(prob, s1, 0, {'s1'});
+
+% Update s polynomials
+prob = spolyrenew(prob, [s1;s2]);
 
 %% Initial Lyapunov-guess
 % linearization around origin
