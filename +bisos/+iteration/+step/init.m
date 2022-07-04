@@ -16,16 +16,23 @@ methods
         % Run initialisation step.
         info.iter = info.iter + 1;
                 
-        stop = isfield(info,'converged') && info.converged;
-
-        if info.iter > 1
-            return;
+        if info.iter == 1
+            % initialize solution variables
+            for var=step.varout
+                [~,sol.(var{:})] = hasinitial(prob,var{:});
+            end
         end
         
-        % initialize solution variables
-        for var=step.varout
-            [~,sol.(var{:})] = hasinitial(prob,var{:});
-        end
+        stepinfo.sol = sol;
+        
+        info = setinfo(step,info,stepinfo);
+        
+        stop = isfield(info,'converged') && info.converged;
+    end
+    
+    function str = name(step)
+        % Overriding Step.name
+        str = sprintf('%s', step.type);
     end
 end
 
