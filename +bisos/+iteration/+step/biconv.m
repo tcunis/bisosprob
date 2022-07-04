@@ -24,7 +24,7 @@ methods
         
         if all(cellfun(@(v) ~isempty(sol.(v)), step.lvar))
             % perform convex subproblem
-            [sol,info,stop] = run(step.conv,prob,info,sol,symbols,assigns,options);
+            [sol,cinfo,stop] = run(step.conv,prob,info,sol,symbols,assigns,options);
             
             if stop, return; end
             
@@ -36,7 +36,7 @@ methods
             tub = obj0:+tol:tub;
         
             % information about convex subproblem
-            convsubprob = info.subprob;
+            convsubprob = getinfo(step.conv,cinfo);
         else
             convsubprob = [];
         end
@@ -49,9 +49,10 @@ methods
         [sol,info,stop] = run@bisos.iteration.step.bisect(step,prob,info,sol,symbols,assigns,options);
         
         % information about subproblems
-        info.subprob = [convsubprob info.subprob];
-    end
-            
+        subprob = getinfo(step,info);
+        subprob.convex = convsubprob;
+        info = setinfo(step,info,subprob);
+    end  
 end
     
 end 

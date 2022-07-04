@@ -20,6 +20,11 @@ methods
         vars = union(obj.varin, obj.varout);
     end
     
+    function str = name(obj)
+        % Return step name.
+        str = tostr(obj);
+    end
+    
     function str = tostr(obj)
         % Return string representation for step.
         
@@ -34,6 +39,19 @@ methods
 end
 
 methods (Access=protected)
+    function sub = getinfo(obj,info)
+        % Get step-specific information from info struct.
+        str = obj.name;
+        sub = info.steps.(str);
+    end
+    
+    function info = setinfo(obj,info,sub)
+        % Set step-specific information in info struct.
+        str = obj.name;
+        sub.stepname = str;
+        info.steps.(str) = sub;
+    end
+    
     function str = varin2str(obj)
         % String representation input variables.
         c = @(s) s(1:end-1);

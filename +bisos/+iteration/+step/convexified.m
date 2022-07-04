@@ -62,11 +62,6 @@ methods
         % solve optimization
         stepsol = optimize(sosc,objective,options.sosoptions);
         
-        % information about subproblem
-        info.subprob = [];
-        info.subprob.size = stepsol.sizeLMI;
-        info.subprob.info = stepsol.solverinfo;
-        
         if ~stepsol.feas
             printf(options,'warning','Step %s infeasible at iteration %d.\n', tostr(step), info.iter);
             % break iteration
@@ -93,14 +88,19 @@ methods
         end
 
         t = [stepsol.primal; stepsol.dual];
-        if info.iter == 1
-            % first iteration
-            info.primdual = zeros(size(t));
+        if info.iter > 1
+            % not first iteration
+            stepinfo = getinfo(step,info);
+            
+            info.converged = ( norm(diag(t' - stepinfo.primdual)) < 1e-5 );
         end
         
-        info.converged = ( norm(diag(t' - info.primdual)) < 1e-5 );
-            
-        info.primdual = t;
+        stepinfo.primdual = t;
+        % information about subproblem
+        stepinfo.subprob.size = stepsol.sizeLMI;
+        stepinfo.subprob.info = stepsol.solverinfo;
+        
+        info = setinfo(step,info,stepinfo);
         
         stop = false;
     end

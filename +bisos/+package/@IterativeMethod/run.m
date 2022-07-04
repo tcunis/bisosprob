@@ -48,9 +48,9 @@ for var=varnames
 end
 
 sol.obj = Inf;
-% prepare array of solutions
-solution(options.Niter) = sol;
-stepinfo(numnodes(G),options.Niter) = struct('step',[],'sol',[],'info',[]);
+% prepare array of step information
+stepinfo(options.Niter) = cell(1);
+info.steps = table;
 
 while info.iter <= options.Niter
     % current step
@@ -59,20 +59,12 @@ while info.iter <= options.Niter
     % state-machine
     [sol,info,stop] = run(step,obj.prob,info,sol,symbols,struct,options);
     
-    % save step solution and info for debug
-    stepinfo(sidx,info.iter).sol  = sol;
-    stepinfo(sidx,info.iter).info = info;
-    stepinfo(sidx,info.iter).step = tostr(step);
-    
     if stop
         % Abort iteration
         break;
     end
 
-    if strcmp(step.type, 'obj')
-        %TODO: save solution to file
-        solution(info.iter) = sol;
-    end
+    stepinfo(info.iter) = {info.steps};
     
     %% compute next step
     % mark current node as visited
@@ -90,17 +82,15 @@ while info.iter <= options.Niter
     
     sidx = nidx;
 end
-
-% find iteration with minimal objective
-% [~,imin] = min([solution.obj]);
-
+            
 if info.iter > 1
     info.iter = info.iter - 1;
 end
+stepinfo = vertcat(stepinfo{1:info.iter});
+
 
 % set output
-sol = solution(info.iter);
-% sol = solution(imin);
+sol = stepinfo.obj(end).sol;
 
 % evaluate final steps
 fstop = cellfun(@(step) run_final(step,obj.prob,info,sol,options), obj.steps);
@@ -111,7 +101,7 @@ if stop >= 2
     sol = [];
 end
 
-info.steps = stepinfo(1:(info.iter*numnodes(G)+sidx));
+info.steps = stepinfo;
 
 finishlog(options,stop);
 

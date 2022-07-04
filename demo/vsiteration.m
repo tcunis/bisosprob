@@ -62,6 +62,8 @@ iter = iter.addbisect({'s1'},-b,{'b'});
 iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
 % define output message and function
 iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
+iter = iter.addconvergence({'V' 'g' p 'b'}, 'ctol', 10^-6, 'domain', [-1 1]);
+%iter = iter.addtermination({'g'}, {'g'}, '>');
 iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p);
 
 % solve iteration
