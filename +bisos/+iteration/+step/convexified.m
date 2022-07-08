@@ -87,15 +87,17 @@ methods
             end
         end
 
-        t = [stepsol.primal; stepsol.dual];
+        p = stepsol.primal;
+        d = stepsol.dual;
         if info.iter > 1
             % not first iteration
             stepinfo = getinfo(step,info);
             
-            info.converged = ( norm(diag(t' - stepinfo.primdual)) < 1e-5 );
+            info.converged = ( double(pnorm2(p - stepinfo.primal)) < 1e-5 ...
+                && double(dnorm2(d - stepinfo.dual)) < 1e-5 );
         end
         
-        stepinfo.primdual = t;
+        stepinfo.primal = p; stepinfo.dual = d;
         % information about subproblem
         stepinfo.subprob.size = stepsol.sizeLMI;
         stepinfo.subprob.info = stepsol.solverinfo;
