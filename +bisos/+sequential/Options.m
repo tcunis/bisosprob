@@ -11,8 +11,13 @@ classdef Options < bisos.package.Options
 %%
 
 properties
+    % feasibility checks
     checkfeas = false;
     feastol = 1e-6;
+    
+    % termination tolerance
+    abstol = 1e-6;
+    reltol = 1e-6;
 end
 
 methods

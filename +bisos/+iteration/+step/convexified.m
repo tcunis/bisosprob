@@ -93,8 +93,8 @@ methods
             % not first iteration
             stepinfo = getinfo(step,info);
             
-            info.converged = ( double(pnorm2(p - stepinfo.primal)) < 1e-5 ...
-                && double(dnorm2(d - stepinfo.dual)) < 1e-5 );
+            info.converged = ( double(pnorm2(p - stepinfo.primal)) < options.abstol ... *double(pnorm2(p)) ...
+                && double(dnorm2(d - stepinfo.dual)) < options.reltol*double(dnorm2(d)) );
         end
         
         stepinfo.primal = p; stepinfo.dual = d;
