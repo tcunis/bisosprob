@@ -33,6 +33,11 @@ methods
     function obj = Options(sosf,varargin)
         % New options instance.
         
+        if isa(sosf, 'bisos.Options')
+            % Copy constructor
+            obj = sosf;
+        end
+        
         for i=1:2:length(varargin)
             obj.(varargin{i}) = varargin{i+1};
         end
