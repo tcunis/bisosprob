@@ -4,6 +4,7 @@ properties
     type = 'transfer';
     varout = [];
     varin;
+    args;
     fun;
 end
 
@@ -15,14 +16,13 @@ methods
 
         step.fun = fun_handle; 
         
-        assert(nargin(fun_handle)-1==length(input),...
-            'Number of inputs is incorrect %d\nShould be %d', length(input), nargin(fun_handle)-1);
-
         step.varin = input;
 
-        assert(length(output)==1, 'Not a single output');
+        assert(length(output)==1, 'Function handle must return exactly one output.');
 
-        step.varout = output;   
+        step.varout = output;  
+
+        step.args = varargin;
 
         cellfun(@(v) assert(hasvariable(prob,v),'Unknown variable ''%s''.',...
             v), [step.varin step.varout]);
@@ -39,7 +39,7 @@ methods
         end
 
         % set objective
-        sol.(step.varout{1}) = step.fun(prob, a{:});
+        sol.(step.varout{1}) = step.fun(a{:}, step.args{:});
         
         stop = false;
     end
@@ -47,10 +47,7 @@ methods
 end
 
 methods (Access=protected)
-    %function str = varout2str(~)
-        % Overriding bisos.iteration.Step#varout2str
-        %str = 'transfer';
-    %end
+
 end
 
 end

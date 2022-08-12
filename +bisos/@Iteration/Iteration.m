@@ -67,19 +67,19 @@ methods
     end
     
     function obj = addconvergence(obj,varargin)
-        % Check for convergence of level sets
+        % Check for convergence of level sets.
         
         obj = obj.addstep('convergence',varargin{:});
     end
     
     function obj = addtermination(obj, varargin)
-        % Register a termination rule
+        % Register a termination rule.
         
         obj = obj.addstep('termination',varargin{:});
     end
     
     function obj = addtransfer(obj, varargin)
-        % Register a convex optimization step.
+        % Register transfer operation.
         
         obj = obj.addstep('transfer',varargin{:});
     end
