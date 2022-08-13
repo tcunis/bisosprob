@@ -137,6 +137,84 @@ methods
         obj.objective = struct('obj', objective, 'lvar', []);
         obj.objective.lvar = lvar;
     end
+
+    function [obj, s] = addsetinclusion(obj, p, q, pvar, qvar, varargin)
+        % set constraint p in q
+
+        auxdec = obj.decvars;
+        
+        nauxdec = fieldnames(auxdec);
+        for i=1:length(nauxdec)
+            id{i} = nauxdec{i};
+            z{i} = sum(auxdec.(nauxdec{i}).z);
+            poly{i} = auxdec.(nauxdec{i}).poly;
+        end
+
+        % Pre part just to get polynomials from subvars
+        namesub = fieldnames(obj.subvars);
+        for i=1:length(namesub)
+            auxsub = obj.subvars.(namesub{i});
+            a=cell(1,length(auxsub.varin));
+
+            for j=1:length(auxsub.varin)
+                a{j} = sum(auxdec.(auxsub.varin{j}).z);
+            end
+            
+            out = auxsub.fhan(a{:});
+
+            for j=1:length(auxsub.poly)
+                z{end+1}=out(j);
+                id{end + 1} = auxsub.poly.varname{j};
+                poly{end +1} = auxsub.poly(j);
+            end
+        end
+        
+        % get degree of q
+        qs = q;
+        for i=1:length(id)
+            if ismember(id(i), q.varname)
+                qs = subs(qs, poly{i}, z{i});
+            end
+        end
+    
+        % get degree of p
+
+        ps = p;
+        for j=1:length(id)
+            if ismember(id(j), p.varname)
+                ps = subs(ps, poly{j}, z{j});
+            end
+        end
+
+         
+        sdeg = qs.maxdeg - ps.maxdeg;
+        if sdeg<=0
+            sdeg = 2;
+        end
+
+        i = 1;
+        while true
+            assert(i<50, "maximum number of s polynomials reached");
+            if ~isfield(obj.decvars, join(['s', int2str(i)]))
+                break;
+            end
+
+            i = i+1;
+        end
+
+        sstr = join(['s', int2str(i)]);
+
+        [obj, s] = sosdecvar(obj, sstr ,monomials(obj.x, 0:ceil(sdeg/2)));
+        
+        pvar{end+1} = sstr;
+
+        obj = le(obj, q, s*p, qvar, pvar);
+        obj = ge(obj, s, 0, {sstr});
+
+    end
+
+
+
 end
 
 methods (Access=private)

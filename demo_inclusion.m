@@ -1,4 +1,5 @@
 % Region of attraction estimation for the Van der Pol oscillator.
+% Demo to test out addsetinclusion functionality
 
 import sosfactory.sosopt.*
 
@@ -24,8 +25,8 @@ prob = bisosprob(sosf,x);
 [prob,V] = polydecvar(prob,'V',monomials(x,1:4));
 
 % SOS multipliers
-[prob,s1] = sosdecvar(prob,'s1',monomials(x,0));
-[prob,s2] = sosdecvar(prob,'s2',monomials(x,1:2));
+%[prob,s1] = sosdecvar(prob,'s1',monomials(x,0));
+%[prob,s2] = sosdecvar(prob,'s2',monomials(x,1:2));
 
 % level sets
 [prob,g] = decvar(prob,'g');
@@ -35,13 +36,12 @@ prob = bisosprob(sosf,x);
 [prob,gradV] = substitute(prob,'dV',@(p) sosf.jacob(p,x),{'V'});
 
 % Stable level set
-prob = le(prob, gradV*f + l, s2*(V-g), {'dV'}, {'V' 'g' 's2'});
-prob = ge(prob, s2, 0, {'s2'});
+[prob, s1] = addsetinclusion(prob, (V-g), gradV*f + l, {'V' 'g'}, {'dV'});
 prob = ge(prob, V, l, {'V'});
 
 % Inscribing ellipsoid
-prob = le(prob, V - g, s1*(p-b), {'V' 'g'}, {'b' 's1'});
-prob = ge(prob, s1, 0, {'s1'});
+[prob, s2] = addsetinclusion(prob, (p-b), V - g, {'b'}, {'V' 'g'});
+
 
 %% Initial Lyapunov-guess
 % linearization around origin
@@ -52,9 +52,6 @@ P = lyap(J0',eye(2));
 
 prob = setinitial(prob,'V',x'*P*x);
 
-% set trivial inscribing shape
-% prob = setinitial(prob,'b',0);
-
 %% Solve
 prob = setobjective(prob, -b, {'b'});
 
@@ -62,11 +59,9 @@ prob = setobjective(prob, -b, {'b'});
 iter = bisos.Iteration(prob, 'display','step');
 iter = iter.sosupdate(s1,s2);
 iter = iter.addconvex({'V'});
-iter = iter.addbisect({'s1'},-b,{'b'});
-iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
+iter = iter.addbisect({'s2'},-b,{'b'});
+iter = iter.addbisect({'s1'},-g,{'g'},{'s2'});
 iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
-iter = iter.addconvergence({'V' 'g' p 'b'}, 'ctol', 10^-6, 'domain', [-1 1]);
-%iter = iter.addtermination({'g'}, {'g'}, '>');
 iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p);
 
 % plot iteration scheme
