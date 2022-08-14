@@ -36,12 +36,11 @@ prob = bisosprob(sosf,x);
 [prob,gradV] = substitute(prob,'dV',@(p) sosf.jacob(p,x),{'V'});
 
 % Stable level set
-[prob, s1] = addsetinclusion(prob, (V-g), gradV*f + l, {'V' 'g'}, {'dV'});
+[prob, s1] = addsetinclusion(prob, g-V, -gradV*f - l, {'V' 'g'}, {'dV'});
 prob = ge(prob, V, l, {'V'});
 
 % Inscribing ellipsoid
-[prob, s2] = addsetinclusion(prob, (p-b), V - g, {'b'}, {'V' 'g'});
-
+[prob, s2] = addsetinclusion(prob, b-p, g-V, {'b'}, {'V' 'g'});
 
 %% Initial Lyapunov-guess
 % linearization around origin

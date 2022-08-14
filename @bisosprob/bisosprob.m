@@ -208,7 +208,7 @@ methods
         
         pvar{end+1} = sstr;
 
-        obj = le(obj, q, s*p, qvar, pvar);
+        obj = le(obj, s*p, q, qvar, pvar);
         obj = ge(obj, s, 0, {sstr});
 
     end
