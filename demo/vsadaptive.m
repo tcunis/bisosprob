@@ -98,3 +98,11 @@ drawnow
 
 stop = false;
 end
+
+function p = get2degree(V,x)
+% return quadratic part of V
+
+[V1,R1] = poly2basis(V, monomials(x,2));
+
+p = R1'*V1;
+end
