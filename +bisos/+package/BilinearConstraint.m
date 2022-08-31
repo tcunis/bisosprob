@@ -7,6 +7,9 @@ properties (Dependent)
     
     lvar;
     bvar;
+    
+    % debug
+    oneside;
 end
 
 properties
@@ -97,16 +100,19 @@ methods (Static)
     function cons = eq(lhs,rhs,varargin)
         % New equality constraint.
         cons = bisos.package.BilinearConstraint(lhs,@eqtol,rhs,varargin{:});
+        cons.data.oneside = lhs - rhs;
     end
     
     function cons = le(lhs,rhs,varargin)
         % New lower-than-or-equal constraint.
         cons = bisos.package.BilinearConstraint(lhs,@letol,rhs,varargin{:});
+        cons.data.oneside = rhs - lhs;
     end
     
     function cons = ge(lhs,rhs,varargin)
         % New greater-than-or-equal constraint.
         cons = bisos.package.BilinearConstraint(lhs,@getol,rhs,varargin{:});
+        cons.data.oneside = lhs - rhs;
     end
     
     function C = empty
@@ -275,6 +281,12 @@ methods
         else
             cmp = ops{:};
         end
+    end
+    
+    function expr = get.oneside(obj)
+        % One-side constraint.
+        terms = getdata(obj,'oneside');
+        expr = vertcat(terms{:});
     end
 end
 
