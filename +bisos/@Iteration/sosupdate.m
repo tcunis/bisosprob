@@ -46,21 +46,13 @@ function obj = sosupdate(obj, varargin)
             if isfield(auxdec, i)
                 id{k} = auxdec.(i{:}).id;
                 poly{k} = auxdec.(i{:}).poly;
-                if isempty(auxdec.(i{:}).pol0)
-                    z{k} = sum(auxdec.(i{:}).z);
-                else
-                    z{k} = auxdec.(i{:}).pol0;
-                end
+                z{k} = sum(auxdec.(i{:}).z);
                 k = k+1;
             else % otherwise it is a subvariable
                 
                 a=cell(1,length(auxsub.(i{:}).varin));
                 for j=1:length(auxsub.(i{:}).varin)
-                    if isempty(auxdec.(auxsub.(i{:}).varin{j}).pol0)
-                        a{j} = sum(auxdec.(auxsub.(i{:}).varin{j}).z);
-                    else
-                        a{j} = auxdec.(auxsub.(i{:}).varin{j}).pol0;
-                    end
+                    a{j} = sum(auxdec.(auxsub.(i{:}).varin{j}).z);
                 end
 
                 out = auxsub.(i{:}).fhan(a{:});
@@ -89,7 +81,7 @@ function obj = sosupdate(obj, varargin)
 
     % loop over each constraint and in each
     
-    [g0, g1, h] = collect(pcons.lhs + pcons.rhs, [prob.x; [poly{:}]']);
+    [g0, g1, ~] = collect(pcons.lhs + pcons.rhs, [prob.x; [poly{:}]']);
     
     for i=1:length(id)
         g0 = subs(g0, poly{i}, z{i});
@@ -115,12 +107,16 @@ function obj = sosupdate(obj, varargin)
     % assign new monomials (verify type)
     for i=1:lspoly
         if strcmp(prob.decvars.(spoly(i).varname{:}).type, 'sos')
-            if sdeg(i)==0
+            if sdeg(i)<=0
                 sdeg(i)=2;
             end
            prob.decvars.(spoly.varname{i}).z = monomials(prob.x,0:ceil(sdeg(i)/2));
-        else    
-           prob.decvars.(spoly.varname{i}).z = monomials(prob.x,0:sdeg(i));
+        else
+           if mod(sdeg(i),2)==0 
+                prob.decvars.(spoly.varname{i}).z = monomials(prob.x,0:sdeg(i));
+           else
+                prob.decvars.(spoly.varname{i}).z = monomials(prob.x,0:sdeg(i)+1);
+           end
        end
     end
 
