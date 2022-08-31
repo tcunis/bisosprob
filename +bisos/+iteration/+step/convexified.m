@@ -88,19 +88,6 @@ methods
             sol.(var{:}) = subs(symbols.(var{:}),X,(1-dopt)*X0 + dopt*X1);
         end
         
-        if options.checkfeas
-            sosc1 = newconstraints(prob.sosf,prob.x);
-            
-            % nonlinear constraint at current solution
-            sosc1 = realize(prob.soscons,sosc1,symbols,sol,step.variables,options.feastol);
-            
-            feassol = optimize(sosc1); %,[],options.sosoptions);
-
-            if ~feassol.feas
-                printf(options,'warning','Infeasible nonlinear solution at iteration %d.\n', info.iter);
-            end
-        end
-
         p = stepsol.primal;
         d = stepsol.dual;
         if info.iter > 1
@@ -117,12 +104,53 @@ methods
         stepinfo.subprob.size = stepsol.sizeLMI;
         stepinfo.subprob.info = stepsol.solverinfo;
         
+        stepinfo = checkfeasibility(step,'step',prob,stepinfo,sol,options);
+        
+        assertfeas(options,stepinfo.feastol,'warning','Infeasible nonlinear solution at iteration %d.\n', info.iter);
+
         info = setinfo(step,info,stepinfo);
+        
+        stop = false;
+    end
+    
+    function stop = run_final(step,prob,info,sol,options)
+        % Overwriting Step#run_final
+        info = checkfeasibility(step,'result',prob,info,sol,options);
+        
+        assertfeas(options,info.feastol,'result','Infeasible nonlinear solution at last iteration.\n');
         
         stop = false;
     end
 end
 
+methods (Access=private)
+    function info = checkfeasibility(step,lvl,prob,info,sol,options)
+    % Check feasibility of solution.
+        if ~checkfeasibility(options,lvl)
+            % nothing to do
+            info.feastol = [];
+            return
+        end
+
+        % else:
+        sosc = newconstraints(prob.sosf,prob.x);
+
+        for var=step.variables
+            symbols.(var{:}) = getsymbol(prob,var);
+            assigns.(var{:}) = sol.(var{:});
+        end
+
+        % tolerance
+        [sosc,eps] = decvar(sosc,1);
+
+        % nonlinear constraint at current solution
+        sosc = realize(prob.soscons,sosc,symbols,assigns,step.variables,eps);
+
+        feassol = optimize(sosc,eps,options.sosoptions);
+
+        % store feasibility tolerance
+        info.feastol = feassol.obj;
+    end
 end
 
-        
+end

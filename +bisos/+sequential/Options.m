@@ -10,9 +10,13 @@ classdef Options < bisos.package.Options
 %
 %%
 
+properties (Constant)
+    CHECKFEAS = struct('off',0,'result',1,'step',2,'warning',3);
+end
+
 properties
     % feasibility checks
-    checkfeas = false;
+    checkfeas = 0;
     feastol = 1e-6;
     
     % step length regulation
@@ -27,6 +31,40 @@ methods
     function obj = Options(varargin)
         % New options instance.
         obj@bisos.package.Options(varargin{:});
+    end
+    
+    function obj = set.checkfeas(obj,value)
+        % Set feasibility checking.
+        assert(ischar(value), 'Feasbilitity check option must be character array.');
+        assert(isfield(obj.CHECKFEAS,value), 'Unknown checking option ''%s''.', value);
+        
+        obj.checkfeas = obj.CHECKFEAS.(value);
+    end
+    
+    %% Feasibility check
+    function tf = checkfeasibility(obj,lvl)
+        % Return true if feasibility is to checked at this level.
+        if nargin < 2
+            % default level
+            lvl = obj.CHECKFEAS.step;
+        elseif ischar(lvl)
+            lvl = obj.CHECKFEAS.(lvl);
+        end
+        
+        tf = (lvl <= obj.checkfeas);
+    end
+    
+    function nb = assertfeas(obj,tol,lvl,varargin)
+        % Assert feasibility within tolerance.
+        nb = 0;
+        
+        if tol < obj.feastol
+            % solution is feasible within tolerance
+        elseif ~checkfeasibility(obj,lvl)
+            % solution infeasible but ignore
+        else
+            nb = printf(obj,'warning',varargin{:});
+        end
     end
 end
 

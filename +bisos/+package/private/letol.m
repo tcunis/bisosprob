@@ -2,9 +2,12 @@ function tf = letol(sosc,A,B,tol)
 % Lower-than-or-equal with tolerance.
 
 if isempty(tol)
-    tol = 0;
+    expr = 0;
+else
+    z = grambasis(sosc,B-A);
+    expr = tol*(z'*z);
 end
 
-tf = le(sosc, A, B + tol);
+tf = le(sosc, A, B + expr);
 
 end
