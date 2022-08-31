@@ -1,4 +1,4 @@
-% Region of attraction estimation for the short period GTM.
+% Region of attraction estimation for the longitudinal GTM.
 
 import sosfactory.sosopt.*
 
@@ -48,7 +48,7 @@ f3 = @(V,alpha,q,theta,eta,F) -6.573e-9*V.^5.*    q.^3     + 1.747e-6*V.^4.*q.^3
                              - 3.063e-2*V.^2.*eta          - 4.388e-3*V.^2.*q            - 2.594e-7*F.^3                ...
                              + 2.461e-3*V.^2               + 1.516e-4*F.^2               + 1.089e-2*F        + 1.430e-1;                         
 
-
+Kq = 0.0698;
 
 %% Trim condition
 v0      = 45;       % m/s
@@ -73,15 +73,15 @@ f = @(x,u) [
 [x0, u0] = findtrim(f,x0, u0);
 
 % short period
-f = @(x,u) [
-                    f2(x0(1),x(1),x(2),x0(4),u0(1),u0(2))
-                    f3(x0(1),x(1),x(2),x0(4),u0(1),u0(2))
-];
+% f = @(x,u) [
+%                     f2(x0(1),x(1),x(2),x0(4),u0(1),u0(2))
+%                     f3(x0(1),x(1),x(2),x0(4),u0(1),u0(2))
+% ];
 
-x = polyvar(sosf,'x',2,1);
+x = polyvar(sosf,'x',4,1);
 
 % set up dynamic system
-f = f(x+[x0(2);x0(3)],u0(1));
+f = f(x0+x,[Kq*x(3); 0]+u0);
 
 d = ([
           convvel(20, 'm/s', 'm/s')  %range.tas.lebesgue.get('ft/s')
@@ -91,7 +91,7 @@ d = ([
 ]);
 
 
-D = diag(d(2:3))^-1;
+D = diag(d)^-1;
 f = subs(D*f, x, D^-1*x);
 
 f = sosf.cleanp(f, 1e-6, 0:5);
@@ -100,7 +100,7 @@ f = sosf.cleanp(f, 1e-6, 0:5);
 A = sosf.jacob(f,x);
 
 % polynomial shape
-p = x'*x;
+p = x'*x*1e2;
 
 % epsilon polynomial
 l = x'*x*1e-6;
@@ -132,11 +132,11 @@ prob = ge(prob, s1, 0, {'s1'});
 
 %% Initial Lyapunov-guess
 % linearization around trim point
-A0 = double(subs(A,x,[0; 0])); 
+A0 = double(subs(A,x,zeros(4,1))); 
 % B0 = double(subs(B,[x;u],[alpha0; q0;eta0])); % check numerical values with paper
 
 % solve Lyapunov equation
-P = lyap(A0',eye(2));
+P = lyap(A0',10*eye(4));
 
 prob = setinitial(prob,'V',x'*P*x);
 
@@ -145,20 +145,19 @@ prob = setobjective(prob, -b, {'b'});
 
 % initialize *all* decision variables
 prob = setinitial(prob,'s1',x'*x);
-prob = setinitial(prob,'s2',x'*x);
+prob = setinitial(prob,'s2',(x'*x)^2);
 prob = setinitial(prob,'b',1);
 
 % solve by sequential sum-of-squares optimization
-iter = bisos.Sequential(prob,'display','step');
+iter = bisos.Sequential(prob,'display','step','Niter',100);
 % define output message and function
 iter = iter.addmessage('gamma = 1,\t beta = %f\n',{'b'});
 iter = iter.addoutputfcn(@plot_sol,{'V' 'b'},p,x,D);
 
-% use dual representation
+iter.options.checkfeas = 'step';
 iter.options.sosoptions.form = 'image';
 iter.options.sosoptions.scaling = 'off';
-iter.options.Niter = 100;
-iter.options.sosoptions.solver = 'sedumi';
+iter.options.sosoptions.solver = 'mosek';
 % solve iteration
 [sol,info] = run(iter);
 
@@ -166,14 +165,14 @@ disp(sol)
 
 function stop = plot_sol(V,b,p,x,D)
 %% plot solution
-V = subs(V,x,D*x);
-p = subs(p,x,D*x);
+V = subs(V,x,D*[0;x(2:3);0]);
+p = subs(p,x,D*[0;x(2:3);0]);
 
 figure(2)
 clf
-pcontour(V, double(1), [-.75 .75 -4 4], 'b-');
+pcontour(V, double(1), [-1 1 -4 4], 'b-');
 hold on
-pcontour(p, double(b), [-.75 .75 -4 4], 'r--');
+pcontour(p, double(b), [-1 1 -4 4], 'r--');
 
 stop = false;
 end
