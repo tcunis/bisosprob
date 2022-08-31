@@ -69,9 +69,23 @@ methods
             return
         end
         
+        % line search (experimental)
+        X1 = subs(bisos.subs(X,symbols,assigns), stepsol);
+        
+        pvar d
+        % objective & nonlinear constraints along d
+        objd = subs(prob.objective.obj,X,(1-d)*X0 + d*X1);
+        gd = subs(prob.soscons.oneside,X,(1-d)*X0 + d*X1);
+        
+        % merit function
+        merit = objd - feval(stepsol.dual,gd);
+        
+        bnds = options.stepbnds;
+        dopt = fminbnd(@(y) double(subs(merit,d,y)), bnds(1), bnds(2));
+        
         % assign outputs
         for var=step.varout
-            sol.(var{:}) = subs(assigns.(var{:}), stepsol);
+            sol.(var{:}) = subs(symbols.(var{:}),X,(1-dopt)*X0 + dopt*X1);
         end
         
         if options.checkfeas
@@ -81,7 +95,7 @@ methods
             sosc1 = realize(prob.soscons,sosc1,symbols,sol,step.variables,options.feastol);
             
             feassol = optimize(sosc1); %,[],options.sosoptions);
-            
+
             if ~feassol.feas
                 printf(options,'warning','Infeasible nonlinear solution at iteration %d.\n', info.iter);
             end
@@ -98,6 +112,7 @@ methods
         end
         
         stepinfo.primal = p; stepinfo.dual = d;
+        stepinfo.stepsize = dopt;
         % information about subproblem
         stepinfo.subprob.size = stepsol.sizeLMI;
         stepinfo.subprob.info = stepsol.solverinfo;

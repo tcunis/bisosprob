@@ -15,6 +15,9 @@ properties
     checkfeas = false;
     feastol = 1e-6;
     
+    % step length regulation
+    stepbnds = [0.1 1];
+    
     % termination tolerance
     abstol = 1e-6;
     reltol = 1e-6;
