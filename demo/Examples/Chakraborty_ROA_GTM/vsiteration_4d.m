@@ -112,10 +112,10 @@ prob = bisosprob(sosf,x);
 
 %% Decision variables
 % Lyapunov candidate
-[prob,V] = polydecvar(prob,'V',monomials(x,2:4));
+[prob,V] = polydecvar(prob,'V',monomials(x,2));
 
 % SOS multipliers
-[prob,s1] = sosdecvar(prob,'s1',monomials(x,0:1));
+[prob,s1] = sosdecvar(prob,'s1',monomials(x,0));
 [prob,s2] = sosdecvar(prob,'s2',monomials(x,1:2));
 
 % level sets
@@ -148,17 +148,21 @@ prob = setinitial(prob,'V',x'*P*x);
 prob = setobjective(prob, -b, {'b'});
 
 % define iteration explicitly
-iter = bisos.Iteration(prob, 'display','step','Niter',100);
+iter = bisos.Iteration(prob, 'display','step','Niter',22);
 iter = iter.addconvex({'V'});
 iter = iter.addbisect({'s1'},-b,{'b'});
 iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
 % define output message and function
-iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
-iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p,x,D);
+% iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
+% iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p,x,D);
 
+iter.options.sosoptions.solver = 'mosek';
 
+tic
 % solve iteration
-sol = run(iter);
+[sol,info2] = run(iter);
+
+toc
 
 disp(sol)
 

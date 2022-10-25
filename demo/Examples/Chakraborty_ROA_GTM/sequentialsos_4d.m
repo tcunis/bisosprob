@@ -149,17 +149,21 @@ prob = setinitial(prob,'s2',(x'*x)^2);
 prob = setinitial(prob,'b',1);
 
 % solve by sequential sum-of-squares optimization
-iter = bisos.Sequential(prob,'display','step','Niter',100);
+iter = bisos.Sequential(prob,'display','warning','Niter',100);
 % define output message and function
-iter = iter.addmessage('gamma = 1,\t beta = %f\n',{'b'});
-iter = iter.addoutputfcn(@plot_sol,{'V' 'b'},p,x,D);
+% iter = iter.addmessage('gamma = 1,\t beta = %f\n',{'b'});
+% iter = iter.addoutputfcn(@plot_sol,{'V' 'b'},p,x,D);
 
-iter.options.checkfeas = 'step';
+% iter.options.checkfeas = 'step';
 iter.options.sosoptions.form = 'image';
 iter.options.sosoptions.scaling = 'off';
 iter.options.sosoptions.solver = 'mosek';
+
+tic
 % solve iteration
 [sol,info] = run(iter);
+
+toc
 
 disp(sol)
 

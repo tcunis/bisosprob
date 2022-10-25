@@ -109,11 +109,11 @@ prob = bisosprob(sosf,x);
 
 %% Decision variables
 % Lyapunov candidate
-[prob,V] = polydecvar(prob,'V',monomials(x,2:4));
+[prob,V] = polydecvar(prob,'V',monomials(x,2));
 
 % SOS multipliers
-[prob,s1] = sosdecvar(prob,'s1',monomials(x,0:1));
-[prob,s2] = sosdecvar(prob,'s2',monomials(x,1:2));
+[prob,s1] = sosdecvar(prob,'s1',monomials(x,0));
+[prob,s2] = sosdecvar(prob,'s2',monomials(x,1));
 
 % level sets
 [prob,b] = decvar(prob,'b');
@@ -144,21 +144,23 @@ prob = setinitial(prob,'V',x'*P*x);
 prob = setobjective(prob, -b, {'b'});
 
 % initialize *all* decision variables
-prob = setinitial(prob,'s1',x'*x);
-prob = setinitial(prob,'s2',x'*x);
+prob = setinitial(prob,'s1',1);
+prob = setinitial(prob,'s2',(x'*x));
 prob = setinitial(prob,'b',1);
 
 % solve by sequential sum-of-squares optimization
 iter = bisos.Sequential(prob,'display','step');
 % define output message and function
-iter = iter.addmessage('gamma = 1,\t beta = %f\n',{'b'});
-iter = iter.addoutputfcn(@plot_sol,{'V' 'b'},p,x,D);
+% iter = iter.addmessage('gamma = 1,\t beta = %f\n',{'b'});
+% iter = iter.addoutputfcn(@plot_sol,{'V' 'b'},p,x,D);
 
 % use dual representation
+iter.options.checkfeas = 'step';
 iter.options.sosoptions.form = 'image';
 iter.options.sosoptions.scaling = 'off';
 iter.options.Niter = 100;
-iter.options.sosoptions.solver = 'sedumi';
+iter.options.sosoptions.solver = 'mosek';
+
 % solve iteration
 [sol,info] = run(iter);
 

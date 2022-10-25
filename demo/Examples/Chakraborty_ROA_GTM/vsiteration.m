@@ -1,8 +1,4 @@
 % Region of attraction estimation for the short period GTM.
-clc
-clear
-set(0,'defaulttextinterpreter','tex');  
-set(0, 'defaultAxesTickLabelInterpreter','tex');  
 
 import sosfactory.sosopt.*
 
@@ -89,13 +85,13 @@ f = f(x+[x0(2);x0(3)],u0(1));
 
 d = ([
           convvel(20, 'm/s', 'm/s')  %range.tas.lebesgue.get('ft/s')
-          convang(50, 'deg', 'rad')  %range.gamma.lebesgue.get('rad')
-          convang(20, 'deg', 'rad')  %range.qhat.lebesgue.get('rad')
-          convang(50, 'deg', 'rad')  %range.alpha.lebesgue.get('rad')
+          convang(20, 'deg', 'rad')  %range.gamma.lebesgue.get('rad')
+          convang(50, 'deg', 'rad')  %range.qhat.lebesgue.get('rad')
+          convang(20, 'deg', 'rad')  %range.alpha.lebesgue.get('rad')
 ]);
 % d = ones(4,1);
 
-D = diag(d(3:4))^-1;
+D = diag(d(2:3))^-1;
 f = subs(D*f, x, D^-1*x);
 
 f = sosf.cleanp(f, 1e-6, 0:5);
@@ -152,28 +148,35 @@ prob = setinitial(prob,'V',x'*P*x);
 prob = setobjective(prob, -b, {'b'});
 
 % define iteration explicitly
-iter = bisos.Iteration(prob, 'display','step','Niter',12);
+iter = bisos.Iteration(prob, 'display','step','Niter',40);
 iter = iter.addconvex({'V'});
 iter = iter.addbisect({'s1'},-b,{'b'});
 iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
 % define output message and function
-iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
-iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p,x,D);
+% iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
+% iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p,x,D);
 
+iter.options.sosoptions.solver = 'mosek';
+
+tic
 
 % solve iteration
-sol = run(iter);
+[sol,info2] = run(iter);
+
+toc
 
 disp(sol)
 
 function stop = plot_sol(V,g,b,p,x,D)
 %% plot solution
-V = subs(V,x,D^-1*x);
+V = subs(V,x,D*x);
+p = subs(p,x,D*x);
+
 figure(2)
 clf
-pcontour(V, double(g), [-60 60 -200 200]*pi/180, 'b-');
+pcontour(V, double(g), [-.75 .75 -4 4], 'b-');
 hold on
-pcontour(p, double(b), [-60 60 -200 200]*pi/180, 'r--');
+pcontour(p, double(b), [-.75 .75 -4 4], 'r--');
 
 stop = false;
 end
