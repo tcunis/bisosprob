@@ -1,8 +1,17 @@
 # `BiSOS` : Toolbox for bilinear sum-of-squares problems
 
-This is a collection of development-in-progress tools for the definition and solution of bilinear sum-of-squares problems in a generic manner. As of today, it allows the specification of bilinear problems in terms of polynomial decision variables (rather than their coefficients) and the design, visualization, and automated execution of iteration schemes in order to solve those problems efficiently. Many desirable features are still under development and have not yet been implemented.
+This is a collection of development-in-progress tools for the definition and solution of bilinear sum-of-squares problems in a generic manner. As of today, it allows the specification of bilinear problems in terms of polynomial decision variables (rather than their coefficients) and the design, visualization, and automated execution of iteration schemes in order to solve those problems efficiently. 
 
 Note: `BiSOSprob` is **not** a sum-of-squares solver itself; rather, it makes use of the [`sosfactory`](https://github.com/tcunis/sosfactory) interface to connect to various openly available sum-of-squares toolboxes, such as sosopt or SPOT, which need to be downloaded and installed separately.
+
+### Sequential programming for nonlinear sum-of-squares problems
+
+`BiSOSprob` now supports a sequential programming approach to nonlinear (not necessarily bilinear) sum-of-squares problems. Nonlinear problems can be defined using class `bisosprob` (see below) and solved by [`bisos.Sequential`](https://github.com/tcunis/bisosprob/blob/sequential/%2Bbisos/Sequential.m). Information about sequential sum-of-squares programming can be found in
+
+> Torbjørn Cunis & Benoît Legat. Sequential sum-of-squares programming for analysis of nonlinear systems. Submitted to the _2023 American Control Conference_, [arXiv:2210.02142](https://arxiv.org/abs/2210.02142).
+
+The numerical examples are available in the [demo folder](https://github.com/tcunis/bisosprob/tree/sequential/demo/Examples/Chakraborty_ROA_GTM).
+As of now, sequential sum-of-squares programming is only possible with a beta version of sosopt, available [here](https://github.com/tcunis/sosopt/tree/duals).
 
 ## Defining bilinear SOS problems: the class [`bisosprob`](https://github.com/tcunis/bisosprob/blob/master/%40bisosprob/bisosprob.m)
 
