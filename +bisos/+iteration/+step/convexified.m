@@ -81,7 +81,7 @@ methods
         merit = objd - feval(stepsol.dual,gd);
         
         bnds = options.stepbnds;
-        dopt = fminbnd(@(y) double(subs(merit,d,y)), bnds(1), bnds(2));
+        dopt = fminbnd(@(y) -1e-15*y.^2 + double(subs(merit,d,y)), bnds(1), bnds(2));
         
         % assign outputs
         for var=step.varout
@@ -93,6 +93,9 @@ methods
         if info.iter > 1
             % not first iteration
             stepinfo = getinfo(step,info);
+            
+            p = dopt*stepsol.primal + (1-dopt)*stepinfo.primal;
+            d = dopt*stepsol.dual + (1-dopt)*stepinfo.dual;
             
             info.converged = ( double(pnorm2(p - stepinfo.primal)) < options.abstol ... *double(pnorm2(p)) ...
                 && double(dnorm2(d - stepinfo.dual)) < options.reltol*double(dnorm2(d)) );
