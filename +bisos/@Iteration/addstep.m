@@ -1,6 +1,8 @@
 function obj = addstep(obj,type,varargin)
 % Register a new step in the iteration scheme.
 %
+% Overwriting IterativeMethod#addstep
+%
 %% About
 %
 % * Author:     Torbjoern Cunis

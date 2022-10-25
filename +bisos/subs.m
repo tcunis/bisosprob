@@ -1,4 +1,4 @@
-function q = subs(p,symbols,assigns,varargin)
+function [q,smb,asg] = subs(p,symbols,assigns,varargin)
 % Replace formal by actual variables.
 
 if nargin < 4

@@ -28,19 +28,18 @@ prob = bisosprob(sosf,x);
 [prob,s2] = sosdecvar(prob,'s2',monomials(x,1));
 
 % level sets
-[prob,g] = decvar(prob,'g');
 [prob,b] = decvar(prob,'b');
 
 %% Constraints
 [prob,gradV] = substitute(prob,'dV',@(p) sosf.jacob(p,x),{'V'});
 
 % Stable level set
-prob = le(prob, gradV*f + l, s2*(V-g), {'dV'}, {'V' 'g' 's2'});
+prob = le(prob, gradV*f + l, s2*(V-1), {'dV'}, {'V' 's2'});
 prob = ge(prob, s2, 0, {'s2'});
 prob = ge(prob, V, l, {'V'});
 
 % Inscribing ellipsoid
-prob = le(prob, V - g, s1*(p-b), {'V' 'g'}, {'b' 's1'});
+prob = le(prob, V - 1, s1*(p-b), {'V'}, {'b' 's1'});
 prob = ge(prob, s1, 0, {'s1'});
 
 %% Initial Lyapunov-guess
@@ -55,27 +54,31 @@ prob = setinitial(prob,'V',x'*P*x);
 %% Solve
 prob = setobjective(prob, -b, {'b'});
 
-% define iteration explicitly
-iter = bisos.Iteration(prob, 'display','step');
-iter = iter.addconvex({'V'});
-iter = iter.addbisect({'s1'},-b,{'b'});
-iter = iter.addbisect({'s2'},-g,{'g'},{'s1'});
+% initialize *all* decision variables
+prob = setinitial(prob,'s1',1);
+prob = setinitial(prob,'s2',x'*x);
+prob = setinitial(prob,'b',1);
+
+% solve by sequential sum-of-squares optimization
+iter = bisos.Sequential(prob, 'display','result');
 % define output message and function
-iter = iter.addmessage('gamma = %f,\t beta = %f\n',{'g' 'b'});
-iter = iter.addconvergence({'V' 'g' p 'b'}, 'ctol', 10^-6, 'domain', [-1 1]);
-%iter = iter.addtermination({'g'}, {'g'}, '>');
-iter = iter.addoutputfcn(@plot_sol,{'V' 'g' 'b'},p);
+iter = iter.addmessage('gamma = 1,\t beta = %f\n',{'b'});
+iter = iter.addoutputfcn(@plot_sol,{'V' 'b'},p);
+
+% use dual representation
+iter.options.sosoptions.form = 'image';
+iter.options.Niter = 100;
 
 % solve iteration
 [sol,info] = run(iter);
 
 disp(sol)
 
-function stop = plot_sol(V,g,b,p)
+function stop = plot_sol(V,b,p)
 %% plot solution
 figure(2)
 clf
-pcontour(V, double(g), [-2 2 -2 2], 'b-');
+pcontour(V, double(1), [-2 2 -2 2], 'b-');
 hold on
 pcontour(p, double(b), [-2 2 -2 2], 'r--');
 

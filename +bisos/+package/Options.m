@@ -1,5 +1,5 @@
 classdef Options
-% Options for bilinear sum-of-squares iteration schemes.
+% Options for iterative methods.
 %
 %% About
 %
@@ -13,14 +13,12 @@ classdef Options
 properties (Constant)
     DISPLAY = struct('off',0,'result',1,'warning',2,'step',3,'debug',4);
     SAVESOL = struct('off',0,'result',1,'step',3);
-    ROUTING = struct('auto',0,'user',1);
 end
 
 properties
     Niter = 10;
     display = 0;
     fid = 1;
-    routing = 0;
     savesol = 0;
     logdir = '.';
     logprefix = '';
@@ -64,14 +62,6 @@ methods
         assert(isfield(obj.SAVESOL,value), 'Unknown saving option ''%s''.', value);
         
         obj.savesol = obj.SAVESOL.(value);
-    end
-    
-    function obj = set.routing(obj,value)
-        % Set auto routing configuration.
-        assert(ischar(value), 'Routing option must be character array.');
-        assert(isfield(obj.ROUTING,value), 'Unknown routing option ''%s''.', value);
-        
-        obj.routing = obj.ROUTING.(value);
     end
     
     function obj = set.fid(obj,value)
@@ -121,7 +111,6 @@ methods
             nb = 0;
         end
     end
-       
     
     %% File storage
     function writetofile(obj,lvl,sol,fmt,varargin)

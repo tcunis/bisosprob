@@ -10,18 +10,15 @@ function [sol,info] = run(obj,G)
 %
 %%
 
-options = preparelog(obj.options);
-
 if nargin > 1 
     % nothing to do
-elseif isrouting(options,'auto')
-    % automatic routing
-    G = route(obj);
 else
     % follow steps by user-defined order
     N = length(obj.steps);
     G = digraph(circshift(eye(N),-1));
 end
+
+options = preparelog(obj.options);
 
 % add dummy steps if necessary
 obj = complete(obj,G);
@@ -91,11 +88,9 @@ if info.iter > 1
 end
 stepinfo = vertcat(stepinfo{1:info.iter});
 
-% find iteration with minimal objective
-[~,imin] = min([stepinfo.obj.value]);
 
 % set output
-sol = stepinfo.obj(imin).sol;
+sol = stepinfo.obj(end).sol;
 
 % evaluate final steps
 fstop = cellfun(@(step) run_final(step,obj.prob,info,sol,options), obj.steps);
